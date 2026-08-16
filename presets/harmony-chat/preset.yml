@@ -1,0 +1,3 @@
+name: 鸿蒙对话模式
+description: 纯 JS Agent，无需 Shell/原生二进制，适用于鸿蒙设备。支持文件编辑、网页检索、Skills、计划、目标。
+order: 1

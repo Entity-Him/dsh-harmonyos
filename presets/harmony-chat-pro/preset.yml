@@ -1,0 +1,3 @@
+name: 鸿蒙对话模式Pro
+description: 纯 JS 缓存极简 Agent —— persona 为唯一系统提示（complete），运行上下文关闭，前缀最大稳定、缓存命中率最高。支持文件编辑、网页检索、Skills、目标、计划、压缩。
+order: 2

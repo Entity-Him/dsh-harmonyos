@@ -1,0 +1,98 @@
+# HarmonyOS 缓存极简 Agent preset (Pro).
+# 缓存策略：persona complete:true（唯一系统提示段）+ includeRuntimeContext:false（关闭动态运行上下文），
+# 系统提示前缀在会话生命周期内零变化，DeepSeek 前缀缓存命中率最高。
+# 无原生依赖，鸿蒙设备可用。相比 Promax 精简掉委派组，任务交付靠单个 Agent + 计划模式完成。
+
+# ── identity（complete:true 后成为唯一系统提示段）────────────────────────────
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    complete: true
+    includeRuntimeContext: false
+    text: >-
+      你是运行在鸿蒙（HarmonyOS）设备上的 AI 编程助手，由 {{model}} 模型驱动，工作目录是 {{cwd}}。
+      这台设备无法运行原生可执行文件，Shell 与子进程不可用；你通过文件编辑、网页检索、Skills、
+      目标与计划来交付任务。
+
+      任务交付准则：
+      - 先理解再动手：确认需求、边界与验收标准。能用静态分析/只读工具查清的事实不要问用户；
+        只有用户才拥有的选择或材料歧义才用 ask_user_question。
+      - 小步推进、持续验证：把任务拆成可验证的小步，动手前用只读工具确认现状，写文件后复核结果，
+        不盲目堆砌代码。
+      - 善用工具：用 todo 跟踪多步任务进度，用 goal 承载长期目标，用网页检索补充缺失信息。
+      - 计划模式：当用户要求"规划/设计方案"或任务涉及多文件改动时，保持计划模式，先只读探索，
+        再通过 exit_plan_mode 一次性提交完整计划等待批准，批准前不实现；被驳回就修订后再提交。
+      - 变更要克制：只做任务要求的改动，不做无关重构，不引入不必要的抽象。
+
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 65536
+
+# ── filesystem ──────────────────────────────────────────────────────────────
+# 纯 JS 文件编辑工具，fs 服务在 host 平面。
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+# ── skills ──────────────────────────────────────────────────────────────────
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+
+# ── goals ───────────────────────────────────────────────────────────────────
+- id: tool-goal
+  name: '@deepseek-ai/dsh-tool-goal'
+
+# ── plan mode ───────────────────────────────────────────────────────────────
+# complete:true 会抑制 plan:policy 段的文本，但保留 exit_plan_mode 工具与切换通知；
+# 计划纪律已写入 persona，进入计划模式时模型仍会收到 user 角色的"已切换到计划模式"通知。
+- id: planning
+  name: cordis:group
+  group: true
+  isolate:
+    planMode: true
+  config:
+    - id: plan-mode
+      name: '@deepseek-ai/dsh-plan-mode'
+      config:
+        section: |
+              You are in plan mode. Stay in plan mode until exit_plan_mode succeeds or the user switches the session mode. Explore first with non-mutating reads; do not edit, write, commit, or otherwise carry out the plan. When ready, call exit_plan_mode with the complete plan markdown starting with a # title; make it the only and final tool call in that response. If review rejects it, incorporate the feedback and present again.
+
+# ── compaction ──────────────────────────────────────────────────────────────
+- id: compaction
+  name: cordis:group
+  group: true
+  isolate:
+    compaction: true
+    toolResultPruner: true
+  config:
+    - id: compaction-basic
+      name: '@deepseek-ai/dsh-compaction-basic'
+
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+
+    - id: tool-result-pruner
+      name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+      config:
+        thresholdChars: 8192
+        headChars: 4096
+        tailChars: 1024
+
+# ── remaining model-facing rows ─────────────────────────────────────────────
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+
+# 网页检索：web 服务在 host 平面，fetch 关闭，仅搜索。
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+  config:
+    fetch: false
+    searchTimeoutMs: 60000

@@ -1,0 +1,14 @@
+# HarmonyOS 适配补丁：禁用依赖原生二进制(node-pty/Koffi)的插件行。
+# 鸿蒙设备无法加载原生 ELF/.node 模块，这些行会直接导致 web 启动崩溃。
+- id: subprocess
+  disabled: true
+- id: sandbox
+  disabled: true
+- id: bash-sandbox
+  disabled: true
+- id: permission
+  disabled: true
+# auto 目录选择器要解析 bind host / SSH(依赖被禁用的原生能力)；
+# 换 browse 变体,纯 JS 文件浏览,不需要原生模块。
+- id: directory-picker
+  name: '@deepseek-ai/dsh-host-directory-picker-browse'
