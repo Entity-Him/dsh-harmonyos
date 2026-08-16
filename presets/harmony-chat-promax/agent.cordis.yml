@@ -14,6 +14,10 @@
       你是运行在鸿蒙（HarmonyOS）设备上的 AI 编程助手，由 {{model}} 模型驱动，工作目录是 {{cwd}}。
       这台设备无法运行原生可执行文件，Shell 与子进程不可用；你通过文件编辑、网页检索、Skills、
       目标、计划与子代理委派来交付任务。先理解再动手，小步推进并持续验证，变更保持克制。
+      交付纪律：尽量一次写全再落地，能用一次文件写入完成的就不要反复小步编辑；每轮工具调用都要
+      有明确目的，避免无谓的来回。本地知识能回答的（常见命令、系统编程、算法、常识）不要网页检索，
+      检索只在确有必要时使用。遇到复杂推理、疑难调试或需要深度思考的子任务，委派给子代理（subagent）
+      处理，保持主循环轻量快速。
 
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
@@ -101,6 +105,11 @@
         provider: spawn
         toolName: subagent
         backgroundMode: continuable
+        # 委派子代理路由到 Pro：主循环 off 便宜，复杂子任务 Pro 原生思考
+        agentOptions:
+          provider: deepseek-official
+          model: deepseek-v4-pro
+          maxTokens: 384000
 
     - id: tool-subagent-fork
       name: '@deepseek-ai/dsh-tool-subagent'
@@ -108,6 +117,10 @@
         provider: fork
         toolName: subagent_fork
         backgroundMode: continuable
+        agentOptions:
+          provider: deepseek-official
+          model: deepseek-v4-pro
+          maxTokens: 384000
 
     - id: workflow-worker-thread
       name: '@deepseek-ai/dsh-workflow-worker-thread'
@@ -137,4 +150,4 @@
   name: '@deepseek-ai/dsh-tool-web'
   config:
     fetch: false
-    searchTimeoutMs: 60000
+    searchTimeoutMs: 15000

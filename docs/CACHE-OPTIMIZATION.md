@@ -66,7 +66,25 @@ dsh 每次请求的系统提示由这些部分组成（按固定顺序 band 拼�
 - `complete: false` + `includeRuntimeContext: false`
 - 保留完整提示段（harness 身份 + persona + plan:policy + 工具指引）→ **长稳定前缀**，每轮缓存掉的 token 更多，长期更省钱
 - 在此基础上加了**委派组**（全部纯 JS、鸿蒙可跑）：`subagent` / `subagent_fork` 进程内并行子代理、`workflow` 工作流、`ralph` 最多 64 轮自主迭代
+- **委派子代理路由到 Pro**：`agentOptions: {provider: deepseek-official, model: deepseek-v4-pro, maxTokens: 384000}`——主循环保持 flash 便宜快，复杂推理子任务自动交给 Pro 原生深度思考兜底
+- persona 内建「交付纪律」：一次写全再落地、本地知识不检索、复杂任务委派 subagent
 - 适合：复杂任务、多文件改造、需要并行交付
+
+## 省 token × 交付效率实测（2026-08-17，11 道基准 headless）
+
+`agent-default-model.reasoningEffort` 三档 A/B 结果：
+
+| effort | 正确率 | 步数(请求) | 输入 | 思考均耗时 | 成本 |
+|---|---|---|---|---|---|
+| `off` | 10/11（T1 数学错） | 52 | 329K | 6.1s | ¥0.052 |
+| **`high`** ✅ | **11/11** | **34** | **151K** | 1.4s | ¥0.067 |
+| `max` | 11/11 | 39 | 157K | 长 | ¥0.067 |
+
+**结论：`high` 是省 token 与干事的帕累托最优**（多 ¥0.015 换全对 + 步数砍 35%），设为默认；硬任务可手动调 `max`。注意 DeepSeek 适配器只认 `off/high/max`（`dsh-llm-deepseek` 第 19-22 行），`low/medium` 无效。
+
+参考真实会话（烧录系统盘、`max`、单任务）：¥0.46 / 2.9M 输入 / 95.2K 输出 / 93% 缓存命中 / 2 轮 36 步 / 27 分钟——**工具调用时间 14m56s 是比思考更大的瓶颈**（工具 schema 每次进缓存 6-7K hit 是大头）。
+
+> 委派组实测全程未触发（A/B 全请求都是 flash）——Pro 路由是保险不是主路径，不改变默认成本曲线。
 
 ## 一句话总结
 

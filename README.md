@@ -5,7 +5,8 @@
 > 鸿蒙端几乎没人做这件事——原生 ELF/.node 模块、node-pty、Koffi 在这类设备上都加载不了。本仓库把「安装、打补丁、缓存优化、插件安装、自更新」一整套工程沉淀成可复刻的开源方案。
 
 - **三套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力
-- **启动补丁** `harmony.patch.yml`：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
+- **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
+- **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 - **node_modules 补丁脚本**：绕开鸿蒙文件系统的两个致命限制（`chmod 600` 被拒、不支持硬链接）
 - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
@@ -68,6 +69,17 @@ sh scripts/dsh-web.sh
 启动后浏览器访问 `http://127.0.0.1:3080`。
 
 > **必须 `--expose-internals`**，否则 `cordis-plugin-hmr` 报错；必须带 `--patch harmony.patch.yml`，否则原生插件崩溃。`dsh-web.sh` 默认自动定位仓库内的补丁文件，也可用 `PATCH_YML` 覆盖。
+
+### 3.5 headless 模式（无人值守/基准测试）
+
+headless 树比 web 多出 bash/pwsh/fs-search 等原生依赖插件行，需要第二个补丁：
+
+```bash
+cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.js \
+  --profile headless --patch <本仓库>/harmony-headless.patch.yml "任务描述"
+```
+
+> ⚠ `fs-sandbox` 是纯 JS 的 fs 服务提供方，**不能禁**（`tool-fs` 靠它）。headless 补丁只禁原生依赖插件行。
 
 ### 4. 打 node_modules 补丁（升级/重装后需重打）
 

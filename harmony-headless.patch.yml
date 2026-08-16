@@ -1,0 +1,24 @@
+# HarmonyOS 适配补丁（headless profile 专用）：web 补丁之外，
+# headless 树还含 bash/pwsh/shell-env/fs-search 等依赖原生服务(node-pty/Koffi)的插件行，
+# 一并禁用才能在鸿蒙上跑 `dsh --profile headless "task"`。
+# ⚠ fs-sandbox 是纯 JS 的 fs 服务提供方，不能禁（tool-fs 靠它）。
+- id: subprocess
+  disabled: true
+- id: sandbox
+  disabled: true
+- id: bash-sandbox
+  disabled: true
+- id: pwsh-sandbox
+  disabled: true
+- id: shell-env
+  disabled: true
+- id: tool-bash
+  disabled: true
+- id: tool-pwsh
+  disabled: true
+- id: tool-fs-search
+  disabled: true
+- id: code-runtime
+  disabled: true
+- id: permission
+  disabled: true
