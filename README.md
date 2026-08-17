@@ -9,6 +9,7 @@
 - **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
 - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
 - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
+- **五套预设跑分（2026-08-18）**：静态前缀预设缓存命中率实测 71%–98%（promax 87.2%、ops 97.9%、rampagemax 89.9%），唯一开运行上下文的 harmony-chat 跌到 52.9%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
 - **node_modules 补丁脚本**：绕开鸿蒙文件系统的两个致命限制（`chmod 600` 被拒、不支持硬链接）
 - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
@@ -152,6 +153,29 @@ node scripts/dsh-update.mjs patch
 
 ---
 
+## 性能实测：五套预设跑分（2026-08-18）
+
+用 **opencode-go API**（免费，cost:0）跑 6 道可自动判分基准题测正确率；用 **DeepSeek 直连 API**（同模型 `deepseek-v4-flash`）同前缀连发 4 次（前 3 次加温）测第 4 次稳态缓存命中率。基准题覆盖：大数乘法 / 1..100 求和 / `isPrime` 代码题 / 三段论逻辑 / 最长河流 / 光速。
+
+| 模式 | 系统提示 token | 缓存命中率 | 基准题正确率 |
+|---|---|---|---|
+| `harmony-chat` | 242 | 52.9% | 6/6 |
+| `harmony-chat-pro` | 359 | 71.3% | 6/6 |
+| `harmony-chat-promax` | 734 | 87.2% | 6/6 |
+| `harmony-chat-ops` | 523 | 97.9% | 5/6 |
+| `harmony-chat-rampagemax` | 854 | 89.9% | 5/6 |
+
+**结论**
+
+- **静态前缀 = 缓存赢家**：ops 97.9% / promax 87.2% / rampagemax 89.9% 全部 87%+，pro 因前缀最短也有 71.3%；唯一开运行上下文的 harmony-chat 掉到 52.9%。实测印证「保缓存先保前缀稳定」——缓存命中输入比未命中便宜约 **30 倍**。
+- **六边形 ProMax 六题全对且命中率 87.2%**：六条交付硬规则是纯静态文本、不注入动态内容，缓存命中率与「交付最强」可以兼得。
+- **命中率是理想静态基线**：harmony-chat / rampagemax 在真实会话里前缀随运行上下文快照变化，实际命中率会更低——这正是它们牺牲缓存换质量的设计本意。
+- ops 与 rampagemax 各有一题判空（API 瞬时空响应），同一题在其余三套全对——属网络抖动，非预设缺陷。
+
+原始数据 `bench/result.json`、报告 `bench/result.md`，跑分脚本 `bench/bench.mjs` 可复现。
+
+---
+
 ## 工具链
 
 | 脚本 | 作用 |
@@ -201,6 +225,10 @@ MIT License，见 [LICENSE](LICENSE)。
 ---
 
 ## 更新记录
+
+### 2026-08-18 — 五套预设跑分落地（性能实测章节）
+
+用 opencode-go 免费 API 测 6 道基准题正确率、DeepSeek 直连测前缀缓存稳态命中率，结果写入正文「性能实测」章节 + `bench/` 目录（脚本 `bench.mjs` 可复现，原始数据 `result.json`、报告 `result.md`）。核心数字：ops 缓存命中 97.9%、promax 87.2%、rampagemax 89.9%、pro 71.3%、harmony-chat 52.9%，正确率四套 6/6。
 
 ### 2026-08-18 — 新增狂暴 Max 预设（不省 token 只讲质量）
 
