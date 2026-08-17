@@ -1,0 +1,19 @@
+{
+  "name": "@deepseek-ai/dsh-tool-list",
+  "description": "Minimal pure-JS list_dir tool for HarmonyOS ops presets: enumerates a directory via node:fs/promises.",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-fs": "^0.1.0-rc.6"
+  }
+}

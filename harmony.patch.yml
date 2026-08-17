@@ -12,3 +12,20 @@
 # 换 browse 变体,纯 JS 文件浏览,不需要原生模块。
 - id: directory-picker
   name: '@deepseek-ai/dsh-host-directory-picker-browse'
+# 委派子代理路由到 Pro（2026-08-17 实测：preset 的 agentOptions 未生效，子代理落回 flash；
+# 需在 profile 层按 id 整行替换才生效；headless 与 web 均已实测）。
+# 主循环 flash 便宜,复杂子任务 Pro 原生思考,一次做对省往返。
+- id: tool-subagent
+  config:
+    provider: spawn
+    toolName: subagent
+    backgroundMode: continuable
+    agentOptions:
+      provider: deepseek-official
+      model: deepseek-v4-pro
+      maxTokens: 384000
+# 挂载 dsh-schedule 定时调度函数插件（随 dsh 基础安装自带）——
+# harmony-chat-ops 常驻任务管家预设的 schedule_create/list/delete 依赖它。
+- insert:
+    - id: schedule
+      name: '@deepseek-ai/dsh-schedule'
