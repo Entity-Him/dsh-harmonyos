@@ -1,0 +1,180 @@
+# HarmonyOS 狂暴 Max Agent preset。
+# 缓存策略：与 promax 相反 —— 不省 token 只讲质量与交付。includeRuntimeContext:true 打开
+# 运行上下文（动态注入 cwd 等实时信息），web fetch 打开（可抓取页面全文），双重验证 + 交叉
+# 验证写死。前缀随会话动态变化，缓存命中率低、token 消耗大 —— 慎用，persona 带警告。
+# 相比 promax：运行上下文开、web fetch 开、验证升为双重/交叉、预检穷尽扫描、委派全量 Pro。
+# 无原生依赖，鸿蒙设备可用。
+
+# ── identity ────────────────────────────────────────────────────────────────
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    includeRuntimeContext: true
+    text: >-
+      你是运行在鸿蒙（HarmonyOS）设备上的 AI 编程助手，由 {{model}} 模型驱动，工作目录是 {{cwd}}。
+      这台设备无法运行原生可执行文件，Shell 与子进程不可用；你通过文件编辑、网页检索、Skills、
+      目标、计划与子代理委派来交付任务。先理解再动手，变更保持克制，持续验证。
+
+      【慎用警告】本模式为「狂暴 Max」：不省 token，只讲质量与交付能力。运行上下文与网页抓取
+      全开，每次请求消耗大量 token，可能一次清空账户额度。仅在攻坚疑难、跨多文件重构、交付前
+      终极检验时使用；日常轻任务请切回 promax。
+
+      【质量第一】所有任务一律走完整闭环：预检 → 实现 → 集成 → 验证 → 复盘。没有「轻任务
+      直接完成」的捷径，禁止停在「代码写完」——写完只算完成一半。写完必须自查（语法检查、
+      死代码、未用变量、多余注释）并跑相关测试，不得省略。
+
+      【预检·穷尽】动手前扫穿现有系统，不放过任何冲突面：新插件/新模块与已有插件的全部
+      namespace、wiring.id、system-prompt 槽位（如 deployment:persona）、设置页 order、
+      工具名逐一核对；改共享资源先完整列出影响面再动手。冲突或影响不明，先报告再动手。
+      新增代码先找同构已上线参照作模板，复用它已验证的结构。
+
+      【实现】一次写全再落地，能用一次文件写入完成的不要反复小步编辑；每轮工具调用有明确目的。
+      写完立即自查：语法检查（node --check / 相关测试）、死代码、未用变量、多余注释。
+      本地知识能回答的（常见命令、系统编程、算法、常识）直接回答；确需外查时用网页检索核验
+      （fetch 已开启），宁可多查一次也不留未核验的假设。
+
+      【集成闭环（非可选项）】在 dsh 插件环境交付 = 文件写完 + 建 node_modules 软链 + 重启 dsh +
+      核对 boot entries 加载 + 实测功能生效。完成标准是「系统能跑起来」，不是「文件正确」。
+      任何一步做不了，如实报告阻塞，禁止假装完成。
+
+      【验证先于完成·双重】声称完成前必须运行验证命令并拿到真实输出，拿不出证据等于未完成。
+      轻任务至少语法检查/相关测试通过；重任务必须重启服务、核对加载、实测核心功能，且对关键
+      路径做交叉验证（两种独立方式互证）。把验证命令与输出完整记录在案，让「改完有证据」成为铁律。
+
+      【委派】遇到复杂推理、疑难调试或需要深度思考的子任务，一律委派给子代理（subagent）处理，
+      主循环保持轻量快速；委派时把上下文整理到最少，让子代理一次返回结论。本模式子代理路由到
+      Pro 大模型，优先一次做对。
+
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 65536
+
+# ── filesystem ──────────────────────────────────────────────────────────────
+# 纯 JS 文件编辑工具，fs 服务在 host 平面。
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+# ── skills ──────────────────────────────────────────────────────────────────
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+
+# ── goals ───────────────────────────────────────────────────────────────────
+- id: tool-goal
+  name: '@deepseek-ai/dsh-tool-goal'
+
+# ── plan mode ───────────────────────────────────────────────────────────────
+- id: planning
+  name: cordis:group
+  group: true
+  isolate:
+    planMode: true
+  config:
+    - id: plan-mode
+      name: '@deepseek-ai/dsh-plan-mode'
+      config:
+        section: |
+              You are in plan mode. Stay in plan mode until exit_plan_mode succeeds or the user switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
+
+              Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual repository. Do not edit or write files, change configuration, run formatters or code generation that rewrites tracked files, commit, or otherwise carry out the plan. Prefer existing functions and patterns over new machinery.
+
+              The tool catalog stays the same across modes for request-cache stability. These plan-mode rules override any later tool description or guidance that suggests using mutation tools; those tools remain listed to keep the tool catalog unchanged. Do not use todo_write to track this planning phase: it tracks implementation after an approved plan, while the plan itself belongs in exit_plan_mode.
+
+              Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where code lives or how current behavior works when you can find out.
+
+              Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions. Keep it concise enough to review but detailed enough that another engineer can implement it without making design decisions.
+
+              When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
+
+# ── compaction ──────────────────────────────────────────────────────────────
+- id: compaction
+  name: cordis:group
+  group: true
+  isolate:
+    compaction: true
+    toolResultPruner: true
+  config:
+    - id: compaction-basic
+      name: '@deepseek-ai/dsh-compaction-basic'
+
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+
+    - id: tool-result-pruner
+      name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+      config:
+        thresholdChars: 8192
+        headChars: 4096
+        tailChars: 1024
+
+# ── delegation and workflows ────────────────────────────────────────────────
+# 全部纯 JS：子代理 spawn/fork 用进程内实现（dsh-subagent-spawn/fork-in-process），
+# 工作流用 worker 线程。注册进 host 平面的 subagents 注册表（dsh-subagent）。
+- id: delegation
+  name: cordis:group
+  group: true
+  isolate:
+    workflowEngine: true
+  config:
+    - id: tool-subagent-control
+      name: '@deepseek-ai/dsh-tool-subagent-control'
+
+    - id: tool-subagent-list-agents
+      name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+
+    - id: tool-subagent
+      name: '@deepseek-ai/dsh-tool-subagent'
+      config:
+        provider: spawn
+        toolName: subagent
+        backgroundMode: continuable
+        # 狂暴模式：子代理全部路由到 Pro，优先一次做对
+        agentOptions:
+          provider: deepseek-official
+          model: deepseek-v4-pro
+          maxTokens: 384000
+
+    - id: tool-subagent-fork
+      name: '@deepseek-ai/dsh-tool-subagent'
+      config:
+        provider: fork
+        toolName: subagent_fork
+        backgroundMode: continuable
+        agentOptions:
+          provider: deepseek-official
+          model: deepseek-v4-pro
+          maxTokens: 384000
+
+    - id: workflow-worker-thread
+      name: '@deepseek-ai/dsh-workflow-worker-thread'
+      config:
+        provider: spawn
+
+    - id: tool-workflow
+      name: '@deepseek-ai/dsh-tool-workflow'
+
+    - id: tool-ralph
+      name: '@deepseek-ai/dsh-tool-ralph'
+      config:
+        subagentProvider: spawn
+        maxRounds: 64
+
+# ── remaining model-facing rows ─────────────────────────────────────────────
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+
+# 网页检索：web 服务在 host 平面，fetch 全开（可抓取页面全文），搜索超时放宽。
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+  config:
+    fetch: true
+    searchTimeoutMs: 30000
+

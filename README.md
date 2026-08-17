@@ -6,6 +6,7 @@
 
 - **四套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力；其中 `harmony-chat-ops` 为常驻后台任务管家模式
 - **六边形 ProMax**（2026-08-18 升级）：缓存命中 / 省 token / 交付能力 / 测试验证 / 集成闭环 / 共存防御六条硬规则同场，把「写完代码」与「系统跑起来」之间的鸿沟写成机械清单，交付纪律对标并反超主流通用 Agent
+- **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
 - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
 - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 - **node_modules 补丁脚本**：绕开鸿蒙文件系统的两个致命限制（`chmod 600` 被拒、不支持硬链接）
@@ -71,6 +72,7 @@ agent-presets:
 | `harmony-chat-pro`（缓存极致） | `complete:true` 唯一提示段 | 前缀零变化，命中率极限 | 单 Agent，计划纪律内建 |
 | `harmony-chat-promax`（六边形交付最强） | `complete:false` | 关闭运行上下文，长稳定前缀 | + 子代理 / 工作流 / Ralph 委派组 + 六条交付硬规则 |
 | `harmony-chat-ops`（任务管家） | 常驻后台任务管家 | 关闭运行上下文，前缀稳定 | + 定时调度（schedule_create/list/delete）+ 目录枚举（list_dir） |
+| `harmony-chat-rampagemax`（狂暴Max，慎用） | 不省 token 只讲质量与交付 | **打开**运行上下文，前缀动态、命中率低 | 全部 promax 能力 + 网页 fetch 全开 + 双重验证/交叉互证 + 委派全量 Pro + 预检穷尽扫描 |
 
 ### 2.4 六边形 ProMax：鸿蒙上交付能力的天花板
 
@@ -199,6 +201,19 @@ MIT License，见 [LICENSE](LICENSE)。
 ---
 
 ## 更新记录
+
+### 2026-08-18 — 新增狂暴 Max 预设（不省 token 只讲质量）
+
+**第五套对话模式 `harmony-chat-rampagemax`**，与 promax 相反——牺牲缓存换质量，慎用（高 token 消耗）：
+
+- **运行上下文打开**（`includeRuntimeContext:true`），前缀随会话动态变化，缓存命中率低
+- **网页 fetch 全开**（`fetch:true`，搜索超时放宽 30s），可抓取页面全文核验
+- **双重验证 + 关键路径交叉互证**，轻任务无捷径、全部走完整闭环
+- **预检穷尽扫描**：namespace / wiring.id / system-prompt 槽位 / 设置页 order / 工具名逐一核对
+- **委派全量 Pro**：子代理一律路由 deepseek-v4-pro，一次做对
+- **persona 内置慎用警告**：「可能一次清空账户额度，仅攻坚疑难/跨文件重构/交付前终极检验时使用」
+
+**实测闭环**：YAML 解析通过 → 同步运行副本 → dsh 重启 → `agentPreset.list` 显示「鸿蒙狂暴Max 已加载，broken: 无」→ `agentPreset.read` 7409 字符全段含慎用警告/质量第一/双重/穷尽/委派。
 
 ### 2026-08-18 — 六边形 ProMax：交付纪律升级
 
