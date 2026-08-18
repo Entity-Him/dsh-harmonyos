@@ -12,7 +12,7 @@
 
 > **群介绍**：让 DeepSeek Harness（dsh）在 HarmonyOS / 鸿蒙 设备上完整跑起来的全套适配方案。鸿蒙端几乎没人做这件事——原生 ELF/.node 模块、node-pty、Koffi 在这类设备上都加载不了。本仓库把「安装、打补丁、缓存优化、插件安装、自更新」一整套工程沉淀成可复刻的开源方案：
 >
-> - **五套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力——`harmony-chat`（极简）/ `harmony-chat-pro`（缓存极致）/ `harmony-chat-promax`（六边形交付最强）/ `harmony-chat-ops`（常驻后台任务管家）/ `harmony-chat-rampagemax`（狂暴质量）
+> - **六套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力——`harmony-chat`（极简）/ `harmony-chat-pro`（缓存极致）/ `harmony-chat-promax`（六边形交付最强）/ `harmony-chat-ops`（常驻后台任务管家）/ `harmony-chat-rampagemax`（狂暴质量）/ `harmony-kb`（知识库专家）
 > - **六边形 ProMax**（2026-08-18 升级）：缓存命中 / 省 token / 交付能力 / 测试验证 / 集成闭环 / 共存防御六条硬规则同场，把「写完代码」与「系统跑起来」之间的鸿沟写成机械清单，交付纪律对标并反超主流通用 Agent
 > - **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
 > - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
@@ -21,9 +21,10 @@
 > - **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
 > - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
-- **五套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力——`harmony-chat`（极简）/ `harmony-chat-pro`（缓存极致）/ `harmony-chat-promax`（六边形交付最强）/ `harmony-chat-ops`（常驻后台任务管家）/ `harmony-chat-rampagemax`（狂暴质量）
+- **六套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力——`harmony-chat`（极简）/ `harmony-chat-pro`（缓存极致）/ `harmony-chat-promax`（六边形交付最强）/ `harmony-chat-ops`（常驻后台任务管家）/ `harmony-chat-rampagemax`（狂暴质量）/ `harmony-kb`（知识库专家）
 - **六边形 ProMax**（2026-08-18 升级）：缓存命中 / 省 token / 交付能力 / 测试验证 / 集成闭环 / 共存防御六条硬规则同场，把「写完代码」与「系统跑起来」之间的鸿沟写成机械清单，交付纪律对标并反超主流通用 Agent
 - **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
+- **知识库专家 `harmony-kb`**（2026-08-19 新增）：把工作区当知识库——分层检索问答 / 深度研究（Pro 委派提炼）/ 文档整理 / 思维脑图（可导入万兴脑图）/ 笔记生成，并按指令把总结推送进鸿蒙侧载版 Obsidian（`[[双链]]` 只挂已有笔记）。注意：频繁委派 Pro + 多工具调用，CPU 负载高，风扇转得较狠
 - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
 - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 - **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
@@ -53,7 +54,7 @@
 - **不动你的数据**：预设只改 dsh 的「对话模式」配置；插件只做目录列举与文件读取；补丁只开关 dsh 自己的插件行。不会删除、覆盖、加密或外传你的文件。
 - **网络行为最小**：只在启动 dsh 时加载配置、在你主动发起对话/检查更新时访问 DeepSeek 与 GitHub 官方接口。无遥测、无埋点、无数据上报。
 - **完全可审阅**：全仓库仅 20 余个文本文件，任何一行都可打开检查。
-- **可逆卸载**：删除 `~/.dsh/.agent-presets/harmony-chat-ops/`、`~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list/` 及 profile 层对应软链，重启 dsh 即完全还原。
+- **可逆卸载**：删除 `~/.dsh/.agent-presets/` 下用到的预设目录（如 `harmony-chat-ops/`、`harmony-kb/`）、`~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list/` 及 profile 层对应软链，重启 dsh 即完全还原。
 
 ---
 
@@ -69,7 +70,7 @@ cd ~/dsh-test && npm install @deepseek-ai/dsh
 
 ### 2. 部署预设（对话模式）
 
-把五个模式目录拷进 dsh 的用户预设目录：
+把六套模式目录拷进 dsh 的用户预设目录：
 
 ```bash
 mkdir -p ~/.dsh/.agent-presets
@@ -83,7 +84,7 @@ agent-presets:
   default: harmony-chat-promax
 ```
 
-五套模式在 dsh 设置面板「对话模式」下拉里可随时自由切换（切换只影响新建会话）。详见 [docs/CACHE-OPTIMIZATION.md](docs/CACHE-OPTIMIZATION.md) 了解它们为什么快。
+六套模式在 dsh 设置面板「对话模式」下拉里可随时自由切换（切换只影响新建会话）。详见 [docs/CACHE-OPTIMIZATION.md](docs/CACHE-OPTIMIZATION.md) 了解它们为什么快。
 
 | 模式 | persona | 缓存策略 | 工具集 |
 |---|---|---|---|
@@ -93,6 +94,7 @@ agent-presets:
 | `harmony-chat-ops`（任务管家） | 常驻后台任务管家 | 关闭运行上下文，前缀稳定 | + 定时调度（schedule_create/list/delete）+ 目录枚举（list_dir） |
 | `harmony-chat-rampagemax`（狂暴 Max） | 不省 token 只讲质量与交付 | 开运行上下文（前缀易变）+ 网页抓取全开 | + 委派组（全 Pro）+ 预检穷尽 / 双重验证 / 复盘铁律 |
 | `harmony-chat-rampagemax`（狂暴Max，慎用） | 不省 token 只讲质量与交付 | **打开**运行上下文，前缀动态、命中率低 | 全部 promax 能力 + 网页 fetch 全开 + 双重验证/交叉互证 + 委派全量 Pro + 预检穷尽扫描 |
+| `harmony-kb`（知识库专家） | 工作区即知识库：分层检索 / 深度研究 / 文档整理 / 脑图 / 笔记 | 关闭运行上下文，前缀稳定 | + 目录枚举（list_dir）+ Obsidian 双链笔记推送 |
 
 ### 2.4 六边形 ProMax：鸿蒙上交付能力的天花板
 
@@ -123,9 +125,9 @@ agent-presets:
 
 **这套规则从哪里来：** 不是设计出来的，是从插件开发实测里逐条长出来的。用 ProMax 写明日方舟干员角色插件（dsh-arknights-persona）时暴露的问题——代码零语法错误、API 全对（9/10），但 node_modules 软链没建、没重启、没核对 boot、没实测（闭环仅 6/10）——每条都变成上面的一格规则。这正是「交付最强」的含义：**代码交付率 9/10，系统跑通率 6/10，差在收尾纪律不在智能。**
 
-### 2.5 安装 ops 模式依赖（仅 `harmony-chat-ops` 需要）
+### 2.5 安装 ops / kb 模式依赖（仅 `harmony-chat-ops` 与 `harmony-kb` 需要）
 
-ops 预设引用了一个 dsh 之外的**自定义插件** `@deepseek-ai/dsh-tool-list`（目录枚举，dsh fs 服务没有 readdir）。它不在 dsh 基础安装里，需手动放两份（源码 + profile 层软链，缺一不可）：
+ops 与 kb 两个预设都引用了一个 dsh 之外的**自定义插件** `@deepseek-ai/dsh-tool-list`（目录枚举，dsh fs 服务没有 readdir）。它不在 dsh 基础安装里，需手动放两份（源码 + profile 层软链，缺一不可）：
 
 ```bash
 # ① 源码进 dsh 基础 node_modules（预设按裸包名解析到此层）
@@ -135,6 +137,18 @@ ln -s ~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list ~/.dsh/profiles/node_mo
 ```
 
 > 定时调度工具 `schedule_create/list/delete` 随 dsh 基础安装自带（`@deepseek-ai/dsh-schedule` 是 dsh 直接依赖），`harmony.patch.yml` 已用 `insert` 挂载，无需额外安装。
+
+### 2.6 鸿蒙知识库专家（harmony-kb）：工作区即知识库 + Obsidian 双链
+
+`harmony-kb` 把 dsh 的工作区直接当知识库用，基于 ops 的 `list_dir` 目录枚举能力，五类玩法：
+
+1. **分层检索问答**：先查 `笔记/kb-index.md` 命中候选 → 只精读命中文件的相关段落作答；索引缺失时自动枚举目录生成。
+2. **深度研究**：发「研究<主题>」走网页检索 + 委派 Pro 子代理提炼，产出 `研究/YYYY-MM-DD-<主题>.md`。
+3. **文档整理**：对工作区文档批量去重、归档、出清单。
+4. **思维脑图**：默认输出 Markdown 树状大纲，说「导入万兴脑图」时另生成 `.mm` 文件到 `笔记/`。
+5. **Obsidian 双链笔记**：按指令（如「总结这段并推送到 Obsidian」）把总结写成 md 落到 Obsidian vault（主目录 `obsidian/` 下含 `.obsidian` 的目录，本机如 `~/obsidian/Monash University/`），用 `[[文件名]]` 双链只挂 `kb-index.md` 里已有的笔记——Obsidian 侧载版自动显示，反链与图谱自动生成。
+
+> ⚠ **注意**：本模式频繁委派 Pro 子代理 + 多工具调用，CPU 负载较高，运行中电脑风扇会明显变响，建议空闲时段使用。
 
 ### 3. 启动 dsh（带鸿蒙补丁）
 
@@ -270,6 +284,16 @@ MIT License，见 [LICENSE](LICENSE)。
 ---
 
 ## 更新记录
+
+### 2026-08-19 — 新增鸿蒙知识库专家预设（harmony-kb）+ Obsidian 双链笔记
+
+**第六套对话模式 `harmony-kb`**，把 dsh 工作区当知识库用，预设计数五套→六套：
+
+- **分层检索问答**：先查 `笔记/kb-index.md` 命中候选再精读，索引缺失自动枚举目录生成（依赖 `@deepseek-ai/dsh-tool-list` 的 `list_dir`，安装见上文「2.5」）
+- **深度研究 / 文档整理 / 思维脑图**：网页检索 + 委派 Pro 提炼 → `研究/YYYY-MM-DD-<主题>.md`；脑图可生成 `.mm` 导入万兴脑图
+- **Obsidian 双链笔记**：按指令（如「总结这段并推送到 Obsidian」）把总结推送进鸿蒙侧载版 Obsidian vault（主目录 `obsidian/` 下含 `.obsidian` 的目录），`[[双链]]` 只挂 kb-index 已有笔记，Obsidian 自动生成反链与图谱
+- **注意**：频繁委派 Pro + 多工具调用，CPU 负载高，运行中风扇转得较狠，建议空闲时段使用
+- **实测闭环**：三处预设文件（仓库 / 内部分发 / 本机部署）逐字节一致；dsh 重启后 `agentPreset.list` 显示「鸿蒙知识库专家」broken 0、`agentPreset.read` 与仓库逐字一致（含 Obsidian 指令块）；单文件自解压 install.sh 假环境解出 IDENTICAL。浏览器黄金路径（推送到 Obsidian）待实测确认
 
 ### 2026-08-18 — 恢复对话框权限预设（dsh-permission-presets 补丁）
 

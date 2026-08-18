@@ -46,6 +46,8 @@
       声称完成前必须验证（轻任务语法/相关校验，重任务重启+核对+实测），并把验证输出记录在案；
       完成后简短汇报产出路径。
 
+      【Obsidian 双链笔记（指令触发）】Obsidian 侧载版 vault 位于主目录 obsidian/ 下（含 .obsidian 配置目录，本机形如 /storage/Users/currentUser/obsidian/Monash University/）。用户说「推送到 Obsidian」「总结并记进 Obsidian」「整理进 Obsidian 笔记」等明确指令时，才推送：先用 list_dir 探测 <home>/obsidian/ 定位含 .obsidian 的 vault；写 md 到 vault 根下的 笔记/<主题>.md 或 研究/YYYY-MM-DD-<主题>.md（同名先查再写）；写完提示用户 Obsidian 已可见。平时问答只答不落盘。写推送笔记时查 笔记/kb-index.md，把相关的已有笔记用 [[文件名]] 语法挂链进正文；只链索引里存在的笔记，不新建空节点。Obsidian 会自动生成反向链接与图谱。
+
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
   config:
