@@ -16,6 +16,7 @@ const PREV = join(HOME, 'dsh-update.prev');
 const LOCK = join(HOME, 'dsh-update.lock');
 const CRED_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-credentials-local', 'lib', 'index.js');
 const SESS_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-session-persistence-jsonl', 'lib', 'index.js');
+const PERM_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-permission-presets', 'lib', 'index.js');
 const MARK = 'HarmonyOS patch';
 
 function log(...parts) {
@@ -80,19 +81,50 @@ function patchSession() {
   const m = re.exec(txt);
   if (!m) throw new Error('session 补丁锚点缺失(await link(tmp, finalPath))，需手动处理: ' + SESS_FILE);
   const indent = m[1];
-  const patched = txt.slice(0, m.index) +
+  let patched = txt.slice(0, m.index) +
     indent + '/* HarmonyOS patch: 本机不支持硬链接(EPERM)，link→rename */\n' +
     indent + 'await rename(tmp, finalPath);' +
     txt.slice(m.index + m[0].length);
+  // 仅换调用不补 import 会 ReferenceError(rename is not defined)：新 dsh 版本 fs/promises import 只含 link，
+  // 必须在 import 解构里补上 rename（否则每次会话落盘都炸，2026-08-18 实测）。
+  const im = /(import\s*\{[^}]*?)\}\s*from\s*["']node:fs\/promises["'];/.exec(patched);
+  if (im && !/\brename\b/.test(im[1])) {
+    patched = patched.slice(0, im.index + im[1].length) + ', rename' + patched.slice(im.index + im[1].length);
+  }
   writeFileSync(SESS_FILE, patched);
   return { changed: true };
 }
+function patchPermission() {
+  const txt = readFileSafe(PERM_FILE);
+  if (!txt) throw new Error('permission-presets 文件不存在，需手动处理: ' + PERM_FILE);
+  if (txt.includes(MARK)) return { changed: false };
+  // 前置条件：此版本仍把 sandboxMode 读自 bash shell（fs 沙箱未启用时该字段不存在，patch 才需要）。
+  // 若上游改读 ctx.fs.sandboxMode 或其他来源，锚点会失败并提示人工确认，绝不静默打错。
+  const injRe = /static\s+inject\s*=\s*(\[[^\]]*\])/;
+  const injM = injRe.exec(txt);
+  if (!injM || !injM[1].includes('"shell"')) {
+    throw new Error('permission 补丁锚点缺失(inject 数组无 "shell")，需手动处理: ' + PERM_FILE);
+  }
+  if (!/ctx\.shell\.sandboxMode/.test(txt)) {
+    throw new Error('permission 补丁锚点缺失(ctx.shell.sandboxMode)，需手动处理: ' + PERM_FILE);
+  }
+  const newInject = injM[1].replace('"shell"', '"fs"');
+  // 先替换 this.ctx.shell. 形式（其包含 ctx.shell. 子串），再替换剩余直接引用。
+  let patched = txt
+    .replace(/this\.ctx\.shell\.sandboxMode/g, 'this.ctx.fs.sandboxMode')
+    .replace(/ctx\.shell\.sandboxMode/g, 'ctx.fs.sandboxMode');
+  patched = patched.slice(0, injM.index) +
+    '/* HarmonyOS patch: 无 bash shell(沙箱原生依赖被禁)，改用 fs 沙箱的 sandboxMode(纯 JS，在运行) */\n\tstatic inject = ' + newInject +
+    patched.slice(injM.index + injM[0].length);
+  writeFileSync(PERM_FILE, patched);
+  return { changed: true };
+}
 function patchAll() {
-  const r1 = patchCredentials(), r2 = patchSession();
-  for (const f of [CRED_FILE, SESS_FILE]) {
+  const r1 = patchCredentials(), r2 = patchSession(), r3 = patchPermission();
+  for (const f of [CRED_FILE, SESS_FILE, PERM_FILE]) {
     if (!readFileSafe(f).includes(MARK)) throw new Error('补丁校验失败(标记缺失): ' + f);
   }
-  return { credential: r1.changed, session: r2.changed };
+  return { credential: r1.changed, session: r2.changed, permission: r3.changed };
 }
 
 // ---- 锁 / 重启 ----
@@ -138,7 +170,7 @@ export async function install() {
   log('npm install 完成 → ' + target);
   writeFileSync(PREV, before);
   const p = patchAll();
-  log('补丁: credential=' + (p.credential ? '重打' : '已存在') + ', session=' + (p.session ? '重打' : '已存在'));
+  log('补丁: credential=' + (p.credential ? '重打' : '已存在') + ', session=' + (p.session ? '重打' : '已存在') + ', permission=' + (p.permission ? '重打' : '已存在'));
   const killed = stopDsh();
   if (killed > 0) log('已停旧 dsh 进程 ' + killed + ' 个');
   restartDsh();

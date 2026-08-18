@@ -18,7 +18,7 @@ A complete adaptation suite to get [DeepSeek Harness](https://github.com/deepsee
 > - **Launch patches** `harmony.patch.yml` (web) + `harmony-headless.patch.yml` (headless): disable plugin lines that depend on native binaries, so dsh no longer crashes on startup
 > - **Measured token savings**: an A/B benchmark over 11 tasks verifies `reasoningEffort: high` as Pareto-optimal (all correct + fewest steps + nearly unchanged cost), with the promax delegation group routing complex subtasks to a Pro model as fallback
 > - **Five-preset benchmark (2026-08-18)**: after static persona padding (prefix crosses the 128-token chunk boundary), the static-prefix presets' cache hit rate rose from 52.9%–89.9% to **93.8%–98.0%** (promax 96.7%, ops 97.9%, rampagemax 98.0%), and even harmony-chat with runtime context enabled was pulled up to 93.8%—data confirming that "to preserve the cache, keep the prefix stable first" (see "Performance Benchmarks" below)
-> - **node_modules patch scripts**: work around two fatal limitations of the HarmonyOS filesystem (`chmod 600` rejected, no hard-link support)
+> - **node_modules patch scripts**: work around the HarmonyOS filesystem restrictions (`chmod 600` rejected, no hard-link support) + restore the dialog permission presets (`dsh-permission-presets` reads `sandboxMode` from the fs sandbox; the read-only/workspace-write/danger-full-access dropdown is back)
 > - **Toolchain**: one-click GitHub plugin installer, dsh self-updater + settings page
 
 - **Five HarmonyOS "conversation mode" Agent presets**: push DeepSeek's prefix cache hit rate to the maximum while retaining task delivery capability—`harmony-chat` (minimal) / `harmony-chat-pro` (cache-optimized) / `harmony-chat-promax` (strongest Hexagon delivery) / `harmony-chat-ops` (resident background task steward) / `harmony-chat-rampagemax` (Rampage Max quality)
@@ -27,7 +27,7 @@ A complete adaptation suite to get [DeepSeek Harness](https://github.com/deepsee
 - **Launch patches** `harmony.patch.yml` (web) + `harmony-headless.patch.yml` (headless): disable plugin lines that depend on native binaries, so dsh no longer crashes on startup
 - **Measured token savings**: an A/B benchmark over 11 tasks verifies `reasoningEffort: high` as Pareto-optimal (all correct + fewest steps + nearly unchanged cost), with the promax delegation group routing complex subtasks to a Pro model as fallback
 - **Five-preset benchmark (2026-08-18)**: after static persona padding (prefix crosses the 128-token chunk boundary), the static-prefix presets' cache hit rate rose from 52.9%–89.9% to **93.8%–98.0%** (promax 96.7%, ops 97.9%, rampagemax 98.0%), and even harmony-chat with runtime context enabled was pulled up to 93.8%—data confirming that "to preserve the cache, keep the prefix stable first" (see "Performance Benchmarks" below)
-- **node_modules patch scripts**: work around two fatal limitations of the HarmonyOS filesystem (`chmod 600` rejected, no hard-link support)
+- **node_modules patch scripts**: work around the HarmonyOS filesystem restrictions (`chmod 600` rejected, no hard-link support) + restore the dialog permission presets (`dsh-permission-presets` reads `sandboxMode` from the fs sandbox; the read-only/workspace-write/danger-full-access dropdown is back)
 - **Toolchain**: one-click GitHub plugin installer, dsh self-updater + settings page
 
 ---
@@ -39,6 +39,7 @@ A complete adaptation suite to get [DeepSeek Harness](https://github.com/deepsee
 | Cannot load native ELF / `.node` modules | `node-pty` (subprocess), `Koffi` (sandbox/fs-local) crash on startup | `harmony.patch.yml` disables these plugin lines |
 | Filesystem enforces group permission bits, `chmod 600` is rejected | Credential file permission check always fails; cannot configure an API key | Patch `dsh-credentials-local`: `assertOwnerOnly` returns immediately |
 | Filesystem does not support hard links | Session persistence `link()` emits `EPERM` in release logs | Patch `dsh-session-persistence-jsonl`: `link` changed to `rename` |
+| No bash shell on HarmonyOS (native sandbox deps disabled) | No permission-preset dropdown in the dialog (read-only/workspace-write/danger-full-access) | Patch `dsh-permission-presets`: read `sandboxMode` from the fs sandbox (pure JS, always running) |
 | `git ls-remote` is intercepted by the isogit shim | GitHub-source plugins cannot be installed | `scripts/dsh-hm-install.mjs` installer (fetch source → build → symlink) |
 
 ---
@@ -165,9 +166,10 @@ cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.j
 node scripts/dsh-update.mjs patch
 ```
 
-Re-applies the two patches idempotently using content anchors (recognizes code changes in new versions). Without these two patches:
+Re-applies the three patches idempotently using content anchors (recognizes code changes in new versions). Without these three patches:
 - Can't configure a model API key (credential 660 permission check)
 - Sending messages errors with `EPERM link` (session persistence)
+- No permission-preset dropdown in the dialog (`dsh-permission-presets` must read `sandboxMode` from the fs sandbox)
 
 ---
 

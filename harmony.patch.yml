@@ -6,8 +6,10 @@
   disabled: true
 - id: bash-sandbox
   disabled: true
+# permission-presets 已打 HarmonyOS patch：去 bash shell 依赖改用 fs 沙箱 sandboxMode，
+# 对话框权限预设(read-only/workspace-write/danger-full-access)恢复可用。
 - id: permission
-  disabled: true
+  disabled: false
 # auto 目录选择器要解析 bind host / SSH(依赖被禁用的原生能力)；
 # 换 browse 变体,纯 JS 文件浏览,不需要原生模块。
 - id: directory-picker

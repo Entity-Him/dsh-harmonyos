@@ -18,7 +18,7 @@
 > - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
 > - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 > - **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
-> - **node_modules 补丁脚本**：绕开鸿蒙文件系统的两个致命限制（`chmod 600` 被拒、不支持硬链接）
+> - **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
 > - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
 - **五套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力——`harmony-chat`（极简）/ `harmony-chat-pro`（缓存极致）/ `harmony-chat-promax`（六边形交付最强）/ `harmony-chat-ops`（常驻后台任务管家）/ `harmony-chat-rampagemax`（狂暴质量）
@@ -27,7 +27,7 @@
 - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
 - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 - **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
-- **node_modules 补丁脚本**：绕开鸿蒙文件系统的两个致命限制（`chmod 600` 被拒、不支持硬链接）
+- **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
 - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
 ---
@@ -39,6 +39,7 @@
 | 无法加载原生 ELF / `.node` 模块 | `node-pty`(subprocess)、`Koffi`(sandbox/fs-local) 启动即崩 | `harmony.patch.yml` 禁用这些插件行 |
 | 文件系统强制组权限位，`chmod 600` 被拒 | 凭据文件权限检查永远炸，配不了 API key | 补丁 `dsh-credentials-local`：`assertOwnerOnly` 直接 `return` |
 | 文件系统不支持硬链接 | session 持久化 `link()` 发布日志报 `EPERM` | 补丁 `dsh-session-persistence-jsonl`：`link` 改 `rename` |
+| 鸿蒙无 bash shell（沙箱原生依赖被禁） | 对话框没有权限预设下拉（read-only/workspace-write/danger-full-access） | 补丁 `dsh-permission-presets`：`sandboxMode` 改读 fs 沙箱（纯 JS，一直在运行） |
 | `git ls-remote` 被 isogit 垫片拦截 | GitHub 源插件装不了 | `scripts/dsh-hm-install.mjs` 安装器（fetch 源码 → 构建 → 软链） |
 
 ---
@@ -165,9 +166,10 @@ cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.j
 node scripts/dsh-update.mjs patch
 ```
 
-按内容锚点幂等重打两个补丁（新版本改代码也能识别），不打这两处：
+按内容锚点幂等重打三个补丁（新版本改代码也能识别），不打这三处：
 - 配不了模型 API key（凭据 660 权限检查）
 - 发消息 `EPERM link`（session 持久化）
+- 对话框没有权限预设下拉（permission-presets 需改读 fs 沙箱的 `sandboxMode`）
 
 ---
 
@@ -268,6 +270,15 @@ MIT License，见 [LICENSE](LICENSE)。
 ---
 
 ## 更新记录
+
+### 2026-08-18 — 恢复对话框权限预设（dsh-permission-presets 补丁）
+
+鸿蒙对话框原本没有「直接开放权限」功能——根因是 `dsh-permission-presets` 依赖 bash shell 的 `ctx.shell.sandboxMode`（硬检查），而鸿蒙禁 bash-sandbox 原生依赖导致该插件被 `harmony.patch.yml` 禁用。本仓库解法：
+
+- **`harmony.patch.yml`**：`id: permission` 改为 `disabled: false`（配合下方代码补丁）
+- **node_modules 补丁 `dsh-permission-presets`**：把 5 处 `ctx.shell.sandboxMode` 改为 `ctx.fs.sandboxMode`，inject 依赖 `"shell"` 换 `"fs"`——fs 沙箱（`dsh-fs-sandbox`，纯 JS）一直在运行，`sandboxMode` 读自 `ctx.sandboxPolicy.defaultMode`（默认 workspace-write）。对话框恢复 read-only / workspace-write / danger-full-access 三档下拉，切 danger-full-access 即放开工作区外写权限。
+- **`scripts/dsh-update.mjs`**：新增 `patchPermission()`（幂等、锚点匹配、带 `HarmonyOS patch` 标记），并入 `patchAll()` 三连校验——升级/重装 dsh 后自动重打，下拉不丢。同时补上 session 补丁的 `rename` import（2026-08-18 实测：只换调用不补 import 会 `rename is not defined` 崩溃）。
+- **验证**：`verify-permission-presets.mjs` 独立 cordis 上下文 8/8 通过（fs.sandboxMode 非 undefined、构造不抛、三档齐全、切换写对 session 事件）。
 
 ### 2026-08-18 — 跟进官方 0.1.0-rc.7
 
