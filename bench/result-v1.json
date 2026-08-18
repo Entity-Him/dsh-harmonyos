@@ -1,0 +1,212 @@
+[
+  {
+    "name": "harmony-chat",
+    "personaChars": 253,
+    "systemPrompt": 661,
+    "firstPromptTokens": 242,
+    "cacheHitTokens": 128,
+    "cacheHitRate": 0.5289,
+    "tasksCorrect": 6,
+    "tasksTotal": 6,
+    "taskDetails": [
+      {
+        "id": "math1",
+        "ok": 1,
+        "out": "83,810,205"
+      },
+      {
+        "id": "math2",
+        "ok": 1,
+        "out": "5050"
+      },
+      {
+        "id": "code1",
+        "ok": 1,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+      },
+      {
+        "id": "logic1",
+        "ok": 1,
+        "out": "A"
+      },
+      {
+        "id": "fact1",
+        "ok": 1,
+        "out": "长江"
+      },
+      {
+        "id": "fact2",
+        "ok": 1,
+        "out": "300000"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-pro",
+    "personaChars": 462,
+    "systemPrompt": 462,
+    "firstPromptTokens": 359,
+    "cacheHitTokens": 256,
+    "cacheHitRate": 0.7131,
+    "tasksCorrect": 6,
+    "tasksTotal": 6,
+    "taskDetails": [
+      {
+        "id": "math1",
+        "ok": 1,
+        "out": "83810205"
+      },
+      {
+        "id": "math2",
+        "ok": 1,
+        "out": "5050"
+      },
+      {
+        "id": "code1",
+        "ok": 1,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+      },
+      {
+        "id": "logic1",
+        "ok": 1,
+        "out": "A"
+      },
+      {
+        "id": "fact1",
+        "ok": 1,
+        "out": "长江"
+      },
+      {
+        "id": "fact2",
+        "ok": 1,
+        "out": "299792"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-promax",
+    "personaChars": 923,
+    "systemPrompt": 1331,
+    "firstPromptTokens": 734,
+    "cacheHitTokens": 640,
+    "cacheHitRate": 0.8719,
+    "tasksCorrect": 6,
+    "tasksTotal": 6,
+    "taskDetails": [
+      {
+        "id": "math1",
+        "ok": 1,
+        "out": "83810205"
+      },
+      {
+        "id": "math2",
+        "ok": 1,
+        "out": "5050"
+      },
+      {
+        "id": "code1",
+        "ok": 1,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+      },
+      {
+        "id": "logic1",
+        "ok": 1,
+        "out": "A"
+      },
+      {
+        "id": "fact1",
+        "ok": 1,
+        "out": "长江"
+      },
+      {
+        "id": "fact2",
+        "ok": 1,
+        "out": "299792"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-ops",
+    "personaChars": 647,
+    "systemPrompt": 1055,
+    "firstPromptTokens": 523,
+    "cacheHitTokens": 512,
+    "cacheHitRate": 0.979,
+    "tasksCorrect": 5,
+    "tasksTotal": 6,
+    "taskDetails": [
+      {
+        "id": "math1",
+        "ok": 0,
+        "out": ""
+      },
+      {
+        "id": "math2",
+        "ok": 1,
+        "out": "5050"
+      },
+      {
+        "id": "code1",
+        "ok": 1,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+      },
+      {
+        "id": "logic1",
+        "ok": 1,
+        "out": "A"
+      },
+      {
+        "id": "fact1",
+        "ok": 1,
+        "out": "长江"
+      },
+      {
+        "id": "fact2",
+        "ok": 1,
+        "out": "299792"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-rampagemax",
+    "personaChars": 1117,
+    "systemPrompt": 1525,
+    "firstPromptTokens": 854,
+    "cacheHitTokens": 768,
+    "cacheHitRate": 0.8993,
+    "tasksCorrect": 5,
+    "tasksTotal": 6,
+    "taskDetails": [
+      {
+        "id": "math1",
+        "ok": 0,
+        "out": ""
+      },
+      {
+        "id": "math2",
+        "ok": 1,
+        "out": "5050"
+      },
+      {
+        "id": "code1",
+        "ok": 1,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+      },
+      {
+        "id": "logic1",
+        "ok": 1,
+        "out": "A"
+      },
+      {
+        "id": "fact1",
+        "ok": 1,
+        "out": "长江"
+      },
+      {
+        "id": "fact2",
+        "ok": 1,
+        "out": "299792"
+      }
+    ]
+  }
+]

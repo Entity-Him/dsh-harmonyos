@@ -1,127 +1,454 @@
 [
   {
     "name": "harmony-chat",
-    "personaChars": 253,
-    "systemPrompt": 661,
-    "firstPromptTokens": 242,
-    "cacheHitTokens": 128,
-    "cacheHitRate": 0.5289,
-    "tasksCorrect": 6,
-    "tasksTotal": 6,
+    "personaChars": 299,
+    "systemPrompt": 707,
+    "firstPromptTokens": 273,
+    "cacheHitTokens": 256,
+    "cacheHitRate": 0.9377,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 70,
+    "deliveryNorm": 72,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 75,
+        "out": "结论：核心路径是「放对位置 → 注册/构建 → 加载/重载 → 冒烟验证 → 确认日志无异常」。\n\n1. **代码自检**：执行单测、lint、类型检查，确保本地通过；修复所有明显错误。\n2. **放置插件**：按 dsh 约定的目录与命名规范，复制插件到目标目录；检查文件权限和依赖是否齐全。\n3. **注册/构建**"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 75,
+        "out": "改动代码后，我会按以下证据链证明完成：\n\n**1. 静态检查**\n- 语法/类型检查通过（如 `tsc`、`py_compile`）\n- Lint 无新增错误（如 `eslint`、`ruff`）\n\n**2. 测试证据**\n- 单元测试全绿：`pytest` / `jest` 输出通过率\n- 新增测试覆盖本次改动路径（"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 67,
+        "out": "收尾工作主要包括：\n\n1. **验证结果** — 检查输出是否完整、符合预期，必要时跑一遍复核。\n2. **清理环境** — 删除临时文件、中间产物，恢复初始状态。\n3. **整理变更** — 汇总改了什么、为什么改、影响范围，方便你追溯。\n4. **更新计划/目标** — 将已完成项标记为完成，同步剩余事项。\n5. "
+      }
+    },
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 130476,
     "taskDetails": [
       {
-        "id": "math1",
+        "id": "m1",
+        "axis": "数学",
         "ok": 1,
-        "out": "83,810,205"
+        "ctk": 209,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
       },
       {
-        "id": "math2",
+        "id": "m2",
+        "axis": "数学",
         "ok": 1,
+        "ctk": 24,
+        "verif": false,
+        "retro": false,
         "out": "5050"
       },
       {
-        "id": "code1",
+        "id": "c1",
+        "axis": "代码",
         "ok": 1,
-        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+        "ctk": 123,
+        "verif": true,
+        "retro": false,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n < 2) return false;\n  if (n % 2 === 0) return n === 2;\n  for (let i = 3; i * i <= n; i += 2) {\n    if (n % i === 0) r"
       },
       {
-        "id": "logic1",
+        "id": "c2",
+        "axis": "代码",
         "ok": 1,
+        "ctk": 22,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 32,
+        "verif": false,
+        "retro": false,
         "out": "A"
       },
       {
-        "id": "fact1",
+        "id": "l2",
+        "axis": "逻辑",
         "ok": 1,
+        "ctk": 61,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0，所以 x ÷ x = 0 ÷ 0，未定义。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 47,
+        "verif": false,
+        "retro": false,
         "out": "长江"
       },
       {
-        "id": "fact2",
+        "id": "f2",
+        "axis": "事实",
         "ok": 1,
-        "out": "300000"
+        "ctk": 196,
+        "verif": false,
+        "retro": false,
+        "out": "299792.458"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 764,
+        "verif": true,
+        "retro": false,
+        "out": "最少 **5 枚**。\n\n组合：  \n- 25元 × 1  \n- 10元 × 2  \n- 1元 × 2  \n- 5元不用  \n\n验证：  \n25 + 10 + 10 + 1 + 1 = **47** ✅\n\n补充：4枚不可能。47 ≡ 2 (mod 5)，4枚中必须有2枚1元，剩下2枚需凑45，但10和25任意两枚凑不出"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 66,
+        "verif": false,
+        "retro": false,
+        "out": "没有共同有空的日子，所以无法安排会议。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 253,
+        "verif": false,
+        "retro": false,
+        "out": "**不相等**（在浮点数运算中）。\n\n`0.1 + 0.2` 的结果是 `0.30000000000000004`，而不是 `0.3`。\n\n原因是 0.1 和 0.2 无法用二进制精确表示，计算机存储的是近似值，累加时产生了精度误差。数学上它们当然等于 0.3，但计算机浮点运算中不相等。"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 70,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方等于 1024，不是 2048。"
       }
     ]
   },
   {
     "name": "harmony-chat-pro",
-    "personaChars": 462,
-    "systemPrompt": 462,
-    "firstPromptTokens": 359,
-    "cacheHitTokens": 256,
-    "cacheHitRate": 0.7131,
-    "tasksCorrect": 6,
-    "tasksTotal": 6,
+    "personaChars": 532,
+    "systemPrompt": 532,
+    "firstPromptTokens": 406,
+    "cacheHitTokens": 384,
+    "cacheHitRate": 0.9458,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 73,
+    "deliveryNorm": 47,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 25,
+        "out": "直接结论：我会按“定位规范 → 落盘文件 → 注册清单 → 静态校验 → 触发加载 → 只读确认”六步交付，全程不使用 Shell/子进程，只靠文件编辑与只读检查来确认生效。\n\n---\n\n### 完整步骤（从“代码写完”到“确认生效”）\n\n1. **定位插件规范与宿主管道**  \n   - 读取 `dsh` 宿主目录下"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 50,
+        "out": "我无法在设备上运行代码，因此不能通过动态执行来验证改动。但我能提供静态证据来证明完成，方法如下：\n\n1. **文件复核**：重新读取修改后的文件，检查语法完整性（括号匹配、关键字拼写、缩进一致性）。\n2. **差异展示**：对比修改前后的文件内容，列出具体改动行，确认每个改动都对应需求。\n3. **交叉一致性**：若涉"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 67,
+        "out": "任务完成后，我的收尾工作包括：\n\n- **验证结果**：复核输出与需求/验收标准是否一致，确认无遗漏或错误。\n- **清理工作区**：删除临时文件、中间产物，确保工作目录整洁。\n- **记录留痕**：保存操作日志、关键决策和修改摘要，便于回溯。\n- **总结汇报**：向用户清晰说明完成情况、遗留问题及后续建议。\n\n这些"
+      }
+    },
+    "verifRate": 8,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 98101,
     "taskDetails": [
       {
-        "id": "math1",
+        "id": "m1",
+        "axis": "数学",
         "ok": 1,
+        "ctk": 141,
+        "verif": false,
+        "retro": false,
         "out": "83810205"
       },
       {
-        "id": "math2",
+        "id": "m2",
+        "axis": "数学",
         "ok": 1,
+        "ctk": 18,
+        "verif": false,
+        "retro": false,
         "out": "5050"
       },
       {
-        "id": "code1",
+        "id": "c1",
+        "axis": "代码",
         "ok": 1,
-        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+        "ctk": 800,
+        "verif": false,
+        "retro": false,
+        "out": "直接用 JavaScript 实现 `isPrime(n)` 时，先处理边界情况（非整数、小于 2），再用 `6k±1` 优化循环到 `√n`。\n\n```javascript\nfunction isPrime(n) {\n  // 边界：必须是非负整数，且小于 2 的都不是素数\n  if (typeof n !== 'n"
       },
       {
-        "id": "logic1",
+        "id": "c2",
+        "axis": "代码",
         "ok": 1,
+        "ctk": 73,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 36,
+        "verif": false,
+        "retro": false,
         "out": "A"
       },
       {
-        "id": "fact1",
+        "id": "l2",
+        "axis": "逻辑",
         "ok": 1,
+        "ctk": 81,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0，所以 x ÷ x = 0 ÷ 0，**未定义**（不能计算）。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 9,
+        "verif": false,
+        "retro": false,
         "out": "长江"
       },
       {
-        "id": "fact2",
+        "id": "f2",
+        "axis": "事实",
         "ok": 1,
+        "ctk": 26,
+        "verif": false,
+        "retro": false,
         "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 425,
+        "verif": true,
+        "retro": false,
+        "out": "最少硬币数：**5 枚**  \n组合：**1 枚 25 元 + 2 枚 10 元 + 2 枚 1 元**  \n验证：25×1 + 10×2 + 1×2 = 25 + 20 + 2 = **47** ✅"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 59,
+        "verif": false,
+        "retro": false,
+        "out": "没有任何一天两人都有空：小明有空在周一、周三、周五，小红有空在周二、周四，交集为空。所以会议无法安排。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 73,
+        "verif": false,
+        "retro": false,
+        "out": "不等于。由于浮点数二进制表示误差，`0.1 + 0.2` 实际结果是 `0.30000000000000004`，在大多数编程语言中与 `0.3` 不相等（除非使用精度比较或十进制运算）。"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 56,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方等于 **1024**，而不是 2048。"
       }
     ]
   },
   {
     "name": "harmony-chat-promax",
-    "personaChars": 923,
-    "systemPrompt": 1331,
-    "firstPromptTokens": 734,
-    "cacheHitTokens": 640,
-    "cacheHitRate": 0.8719,
-    "tasksCorrect": 6,
-    "tasksTotal": 6,
+    "personaChars": 1009,
+    "systemPrompt": 1417,
+    "firstPromptTokens": 794,
+    "cacheHitTokens": 768,
+    "cacheHitRate": 0.9673,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 104,
+    "deliveryNorm": 89,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 100,
+        "out": "在 dsh 插件环境交付新插件的完整闭环如下：\n\n1. **预检**：先扫描现有系统，确认新插件与已有插件不冲突（namespace、wiring.id、system-prompt 槽位、设置页 order、工具名）。影响不明先报告再动手；同时找一个同构的已上线插件作模板。\n\n2. **实现**：一次写全代码，复用参照"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 100,
+        "out": "改动代码后，我会用以下证据链证明“完成”：\n\n1. **静态自查结果**：运行语法检查（如 `node --check`、相关测试命令），给出通过回显；同时自查并说明无死代码、未用变量、多余注释。\n2. **集成加载证据**：在 dsh 插件环境里完成软链、重启后，出示 boot entries 中新增模块的实际加载记"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 67,
+        "out": "任务完成后，我不仅交付代码或文件，还会做一套收尾工作，确保结果**真正可用、干净、可维护**。核心是验证闭环，而不只是“文件写完了”。\n\n具体包括：\n\n- **验证闭环**：按环境要求做集成验证。例如在 dsh 插件环境里，建 node_modules 软链、重启 dsh、核对 boot entries 加载，并实际触"
+      }
+    },
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 71056,
     "taskDetails": [
       {
-        "id": "math1",
+        "id": "m1",
+        "axis": "数学",
         "ok": 1,
+        "ctk": 306,
+        "verif": false,
+        "retro": false,
         "out": "83810205"
       },
       {
-        "id": "math2",
+        "id": "m2",
+        "axis": "数学",
         "ok": 1,
+        "ctk": 21,
+        "verif": false,
+        "retro": false,
         "out": "5050"
       },
       {
-        "id": "code1",
+        "id": "c1",
+        "axis": "代码",
         "ok": 1,
-        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+        "ctk": 257,
+        "verif": true,
+        "retro": false,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n < 2) return false;\n  if (n === 2) return true;\n  if (n % 2 === 0) return false;\n\n  // 只需检查到 sqrt(n)，跳过所有偶数\n  for (le"
       },
       {
-        "id": "logic1",
+        "id": "c2",
+        "axis": "代码",
         "ok": 1,
+        "ctk": 24,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 8,
+        "verif": false,
+        "retro": false,
         "out": "A"
       },
       {
-        "id": "fact1",
+        "id": "l2",
+        "axis": "逻辑",
         "ok": 1,
+        "ctk": 148,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0，所以 x ÷ x = 0 ÷ 0，**未定义**（不能得到一个确定的数值）。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 64,
+        "verif": false,
+        "retro": false,
         "out": "长江"
       },
       {
-        "id": "fact2",
+        "id": "f2",
+        "axis": "事实",
         "ok": 1,
+        "ctk": 104,
+        "verif": false,
+        "retro": false,
         "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 516,
+        "verif": true,
+        "retro": false,
+        "out": "最少硬币数：**5 枚**\n\n组合：**25 + 10 + 10 + 1 + 1 = 47**\n\n验证：  \n25 + 10 + 10 + 1 + 1 = 47，共 5 枚硬币。  \n贪心策略（优先用大面额）即可得到该最优解：47 → 25（余 22）→ 10（余 12）→ 10（余 2）→ 1 → 1。"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 84,
+        "verif": false,
+        "retro": false,
+        "out": "小明有空：周一、周三、周五；小红有空：周二、周四。两人没有共同有空的日子，所以无法安排会议。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 199,
+        "verif": false,
+        "retro": false,
+        "out": "在多数编程语言中，**不等于**，因为浮点数采用二进制存储，无法精确表示 0.1 和 0.2：\n\n```js\nconsole.log(0.1 + 0.2 === 0.3); // false\nconsole.log(0.1 + 0.2);         // 0.30000000000000004\n```\n\n如果你需"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 90,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方等于 1024，2048 是 2 的 11 次方。"
       }
     ]
   },
@@ -132,80 +459,298 @@
     "firstPromptTokens": 523,
     "cacheHitTokens": 512,
     "cacheHitRate": 0.979,
-    "tasksCorrect": 5,
-    "tasksTotal": 6,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 155,
+    "deliveryNorm": 36,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 25,
+        "out": "在 dsh 插件环境交付新插件的完整步骤（写完代码 → 确认生效）如下。由于本环境无 Shell/子进程，一切通过文件编辑、调度与子代理完成。\n\n---\n\n### 1. 前置检查（precheck）\n- 用 `tool-fs` 列出插件目录（如 `~/dsh/plugins/`），确认已有插件结构、命名规范与接口约定。"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 50,
+        "out": "改动代码后，我会用以下证据链向人证明完成，按可信度从高到低排列：\n\n## 1. 可执行的验证日志（最硬证据）\n- **构建/运行输出**：记录程序实际执行的输出、退出码、关键日志片段。\n- **测试报告**：单元测试、集成测试的通过数量/失败数，附上 `PASS/FAIL` 摘要。\n- **定时任务生效记录**：若改动"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 33,
+        "out": "任务完成后，我会做以下收尾工作：\n\n1. **核对产出**：检查交付物是否完整、格式是否正确（例如 markdown 结构、文件命名是否符合 `~/dsh-kb/类型/日期` 规则）。\n2. **汇报产出路径**：简短说明任务结果，并给出产出文件的绝对路径，方便你直接查看。\n3. **清理临时状态**：如果执行过程中产"
+      }
+    },
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 99333,
     "taskDetails": [
       {
-        "id": "math1",
-        "ok": 0,
-        "out": ""
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 155,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
       },
       {
-        "id": "math2",
+        "id": "m2",
+        "axis": "数学",
         "ok": 1,
+        "ctk": 41,
+        "verif": false,
+        "retro": false,
         "out": "5050"
       },
       {
-        "id": "code1",
+        "id": "c1",
+        "axis": "代码",
         "ok": 1,
-        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+        "ctk": 458,
+        "verif": true,
+        "retro": false,
+        "out": "```javascript\n/**\n * 判断一个整数是否为素数\n * @param {number} n - 要判断的整数\n * @returns {boolean} - 是素数返回 true，否则返回 false\n */\nfunction isPrime(n) {\n  // 小于 2 的数不是素数（0、1、负数）\n"
       },
       {
-        "id": "logic1",
+        "id": "c2",
+        "axis": "代码",
         "ok": 1,
+        "ctk": 128,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 61,
+        "verif": false,
+        "retro": false,
         "out": "A"
       },
       {
-        "id": "fact1",
+        "id": "l2",
+        "axis": "逻辑",
         "ok": 1,
+        "ctk": 185,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 - 42 = 0\n\n所以 x ÷ x = 0 ÷ 0。  \n在数学中，0 不能作为除数，0 ÷ 0 是**未定义**的，因此该表达式没有确定的值。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 21,
+        "verif": false,
+        "retro": false,
         "out": "长江"
       },
       {
-        "id": "fact2",
+        "id": "f2",
+        "axis": "事实",
         "ok": 1,
-        "out": "299792"
+        "ctk": 242,
+        "verif": false,
+        "retro": false,
+        "out": "300000"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 312,
+        "verif": true,
+        "retro": false,
+        "out": "最少需要 **5 枚硬币**。\n\n组合：**25 + 10 + 10 + 1 + 1 = 47**\n\n验证：  \n25 + 10 + 10 = 45，45 + 1 + 1 = 47 ✅"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 67,
+        "verif": false,
+        "retro": false,
+        "out": "小明有空：周一、周三、周五  \n小红有空：周二、周四  \n\n两人没有共同有空的日子，所以**无法安排会议**。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 260,
+        "verif": false,
+        "retro": false,
+        "out": "在**数学上**，0.1 + 0.2 等于 0.3。\n\n但在**计算机中**（绝大多数编程语言使用 IEEE 754 双精度浮点数），`0.1 + 0.2` 的结果并不精确等于 `0.3`，而是：\n\n```\n0.30000000000000004\n```\n\n原因：十进制小数 `0.1` 和 `0.2` 无法用二进制有限"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 88,
+        "verif": false,
+        "retro": false,
+        "out": "这个说法不正确。  \n2 的 10 次方 = 2 × 2 × … × 2（10 个 2 相乘）= **1024**。  \n2048 是 2 的 **11** 次方。"
       }
     ]
   },
   {
     "name": "harmony-chat-rampagemax",
-    "personaChars": 1117,
-    "systemPrompt": 1525,
-    "firstPromptTokens": 854,
-    "cacheHitTokens": 768,
-    "cacheHitRate": 0.8993,
-    "tasksCorrect": 5,
-    "tasksTotal": 6,
+    "personaChars": 1213,
+    "systemPrompt": 1621,
+    "firstPromptTokens": 914,
+    "cacheHitTokens": 896,
+    "cacheHitRate": 0.9803,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 125,
+    "deliveryNorm": 92,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 100,
+        "out": "# dsh 插件交付：从写完代码到确认生效的完整闭环\n\n按本环境铁律，**「写完」只算完成一半**。交付 = 文件落地 + 集成 + 实测 + 证据。以下是完整步骤：\n\n---\n\n## 阶段 0：预检（动手前，已隐含在过程中）\n\n即使代码已写完，落地前最后扫一遍冲突面：\n\n- 核对插件 `namespace`、`wir"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 75,
+        "out": "# 改动代码后，我如何证明「完成」\n\n在鸿蒙设备 + dsh 插件环境（无 shell、无原生可执行文件）下，**「完成」的定义是「系统能跑起来且有可复现证据」**，不是「文件写对了」。我按以下证据层级自证：\n\n---\n\n## 1. 静态证据（最低门槛）\n\n| 证据 | 具体形式 |\n|---|---|\n| 语法合法性"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 100,
+        "out": "任务完成的标志不是“代码写完”，而是“系统能跑起来并留有证据”。因此，我会在交付前执行一套完整的收尾闭环，具体包括：\n\n---\n\n## 1. 静态自查（写完后立即做）\n- **语法检查**：对改动文件运行语法校验（如 `node --check`），确保无低级错误。\n- **清理死代码**：删除未使用的变量、无效分支、"
+      }
+    },
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 142010,
     "taskDetails": [
       {
-        "id": "math1",
-        "ok": 0,
-        "out": ""
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 471,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
       },
       {
-        "id": "math2",
+        "id": "m2",
+        "axis": "数学",
         "ok": 1,
+        "ctk": 59,
+        "verif": false,
+        "retro": false,
         "out": "5050"
       },
       {
-        "id": "code1",
+        "id": "c1",
+        "axis": "代码",
         "ok": 1,
-        "out": "```javascript\nfunction isPrime(n) {\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 =="
+        "ctk": 535,
+        "verif": true,
+        "retro": false,
+        "out": "下面是一个常用且高效的 `isPrime(n)` 实现：\n\n```javascript\nfunction isPrime(n) {\n  // 小于 2 的数都不是素数\n  if (n < 2) return false;\n\n  // 2 和 3 是素数\n  if (n === 2 || n === 3) return "
       },
       {
-        "id": "logic1",
+        "id": "c2",
+        "axis": "代码",
         "ok": 1,
+        "ctk": 125,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 33,
+        "verif": false,
+        "retro": false,
         "out": "A"
       },
       {
-        "id": "fact1",
+        "id": "l2",
+        "axis": "逻辑",
         "ok": 1,
+        "ctk": 191,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0\n\n因此：\n\nx ÷ x = 0 ÷ 0\n\n**结果：未定义（不能计算）**\n\n原因：0 不能作为除数。虽然任何非零数除以自身等于 1，但 0 ÷ 0 在数学中没有定义。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 23,
+        "verif": false,
+        "retro": false,
         "out": "长江"
       },
       {
-        "id": "fact2",
+        "id": "f2",
+        "axis": "事实",
         "ok": 1,
+        "ctk": 96,
+        "verif": false,
+        "retro": false,
         "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 460,
+        "verif": true,
+        "retro": false,
+        "out": "最少硬币数为 **5 枚**。\n\n组合：  \n**25 元 × 1 = 25**  \n**10 元 × 2 = 20**  \n**5 元 × 0 = 0**  \n**1 元 × 2 = 2**\n\n验证：  \n25 + 20 + 2 = **47 元** ✓  \n硬币数：1 + 2 + 0 + 2 = **5 枚**\n\n"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 112,
+        "verif": false,
+        "retro": false,
+        "out": "没有任何一天两人都有空：小明的空档是周一、周三、周五，小红的空档是周二、周四，交集为空，因此无法安排这样一场会议。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 800,
+        "verif": false,
+        "retro": false,
+        "out": "在**数学上**，0.1 + 0.2 当然等于 0.3。但在**计算机的浮点数运算**中，绝大多数编程语言里 `0.1 + 0.2` 的结果并不精确等于 `0.3`，而是：\n\n```text\n0.30000000000000004\n```\n\n所以答案是：**不等（在计算机浮点数表示下）**。\n\n---\n\n## 为什么？"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 86,
+        "verif": false,
+        "retro": false,
+        "out": "这个说法不正确。\n\n- \\(2^{10} = 1024\\)\n- \\(2^{11} = 2048\\)\n\n所以 **2 的 10 次方等于 1024**，而不是 2048。"
       }
     ]
   }
