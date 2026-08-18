@@ -1,3 +1,5 @@
+**简体中文** | [English](README.en.md)
+
 # dsh-harmonyos
 
 让 [DeepSeek Harness](https://github.com/deepseek-ai/dsh)（dsh）在 **HarmonyOS / 鸿蒙** 设备上完整跑起来的全套适配方案。
