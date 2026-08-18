@@ -252,6 +252,14 @@ MIT License，见 [LICENSE](LICENSE)。
 
 ## 更新记录
 
+### 2026-08-18 — 跟进官方 0.1.0-rc.7
+
+dsh 官方更新至 `0.1.0-rc.7`（DeepSeek 群聊发布），本仓库移植版已同步。升级要点：
+
+- **`--ignore-scripts` 绕过 koffi 原生构建**：rc.7 依赖树把 koffi 升到 3.1.5，其 install 脚本需 CMake 编译原生二进制——鸿蒙无编译器直接失败。实测 koffi 原生部分只在 win32 路径被 dsh-fs-local 懒加载（鸿蒙永不触发）、node-pty 本机本就不可用、sharp 走预编译、@deepseek-ai 各包均为纯 JS 无 install 脚本，故安装时整体跳过 scripts 安全。已固化进 `scripts/dsh-update.mjs`，后续升级不再踩坑。
+- **DeepSeek 推理档位新增 `low`**：官方适配器现支持 `off/low/high/max`（默认仍 `high`），`medium` 无效。已同步 `docs/CACHE-OPTIMIZATION.md` 实测注记。
+- **升级闭环**：npm install → 重打鸿蒙补丁（credentials/session）→ 重启 dsh → 3080 正常 → 五套预设 `agent.cordis.yml` 经 rc.7 `entryListSchema` 校验全部可加载。
+
 ### 2026-08-18 — 跑分重写为「六边形雷达 + 性能表 + 交付质量表」
 
 跑分从 6 题扩到 6 轴 × 2 题 = 12 道全自动判分，并新增交付质量表（3 道流程题按交付步骤标记命中打分）。核心数字：能力六轴五套全满分（同模型能力地板一致）；缓存命中率经静态 persona 填充后 52.9-89.9% → 93.8-98.0%；交付规范 promax 89（性能与纪律兼得）、rampagemax 92 全场最高（复盘收尾唯一满分，但效率/耗时最贵）。脚本 `bench/bench.mjs` 可复现，原始数据 `result.json`、报告 `result.md`。同步 README 简介：预设计数四套→五套（模式表补 `harmony-chat-rampagemax` 行），简介跑分数字更新为填充后 93.8-98.0%。

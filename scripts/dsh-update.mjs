@@ -27,13 +27,17 @@ function tail(s, n = 6000) { return (s || '').slice(-n); }
 function readFileSafe(p) { try { return readFileSync(p, 'utf8'); } catch { return ''; } }
 
 function sh(cmd, args, opts = {}) {
+  args = args.concat(opts.extra || []);
   const r = spawnSync(cmd, args, {
     encoding: 'utf8', maxBuffer: 16 * 1024 * 1024,
     timeout: opts.timeout ?? 600000, cwd: opts.cwd, env: { ...process.env, CI: 'true' },
   });
   return { ok: r.status === 0, code: r.status, out: (r.stdout || '') + (r.stderr || '') };
 }
-function npm(...args) { return sh('npm', args, { cwd: DSH_DIR }); }
+// 鸿蒙适配：--ignore-scripts 跳过原生构建（koffi 需 CMake 但本机无编译器，
+// 且其原生二进制只在 win32 路径使用、node-pty 本机本就不可用、sharp 走预编译）。
+// 纯 JS 的 @deepseek-ai 包均无 install 脚本，忽略是安全的。
+function npm(...args) { return sh('npm', args, { cwd: DSH_DIR, extra: ['--ignore-scripts'] }); }
 
 function readInstalled() {
   try { return String(JSON.parse(readFileSync(PKG, 'utf8')).version || '').trim(); }
