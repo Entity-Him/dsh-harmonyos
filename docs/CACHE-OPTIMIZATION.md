@@ -1,4 +1,4 @@
-# 为什么这三套预设缓存命中率高
+# 为什么五套预设的缓存命中率有高有低
 
 DeepSeek 的缓存是**前缀命中**：每次请求的前 N 个 token 与上次完全一致的部分直接走缓存（约 1/10 价格、低延迟）。所以优化的唯一目标就是——**让请求前缀在会话生命周期内一字不变，同时尽量长**。
 
@@ -10,6 +10,8 @@ DeepSeek 的缓存是**前缀命中**：每次请求的前 N 个 token 与上次
 | 长固定前缀（2701 token），第二请求起不变 | 命中 2688/2701 ≈ **99.5%** |
 
 结论：**命中率由「前缀稳定性」决定，不是前缀长度**。动态注入的内容（日期、最近文件快照、运行时状态）一出现，缓存就从第一个变化 token 处整体失效。
+
+> 口径说明：上面的 99.5% 是**逐 token 精确命中**比例；DeepSeek 实际计费按 **128-token 块**，尾部 `prompt mod 128` 必按未命中计，所以 README「性能实测」的稳态命中率（93.8–98.0%）略低于逐 token 值——机制一致，口径不同。
 
 ## 前缀里有哪些内容
 
@@ -50,7 +52,17 @@ dsh 每次请求的系统提示由这些部分组成（按固定顺序 band 拼�
 
 `dsh-plan-mode` 的 `section` 配置**必填非空字符串**，缺了会在 mount 时报 `PlanModeConfig needs a string section`——即使 `complete:true` 下该段会被抑制，配置校验仍然要求它存在。
 
-## 三套预设的取舍
+## 五套预设的取舍
+
+先看全景——五套预设的缓存开关与实测静态基线命中率（2026-08-18 跑分，详见 README「性能实测」）：
+
+| 预设 | `includeRuntimeContext` | `complete` | 缓存原型 | 实测静态基线命中率 |
+|---|---|---|---|---|
+| `harmony-chat`（基础） | ✅ 开 | false | 基线：前缀随快照变化 | 93.8% |
+| `harmony-chat-pro`（缓存极致） | false | ✅ true | 唯一提示段：短稳定前缀 | 94.6% |
+| `harmony-chat-promax`（交付最强） | false | false | 长稳定前缀 | 96.7% |
+| `harmony-chat-ops`（任务管家） | false | false | 长稳定前缀（同 promax） | 97.9% |
+| `harmony-chat-rampagemax`（狂暴 Max） | ✅ 开 | false | 基线：前缀随快照变化 | 98.0%（理想静态基线） |
 
 ### 基础 `harmony-chat`
 对比标准 preset 只去掉了原生依赖的工具，其余照旧——**运行上下文开着**，前缀会随快照变化，缓存命中率不理想。是基线。
@@ -70,6 +82,16 @@ dsh 每次请求的系统提示由这些部分组成（按固定顺序 band 拼�
 - persona 内建「交付纪律」：一次写全再落地、本地知识不检索、复杂任务委派 subagent
 - 适合：复杂任务、多文件改造、需要并行交付
 
+### 鸿蒙任务管家 `harmony-chat-ops`（常驻后台）
+- 缓存策略同 promax：`includeRuntimeContext: false` + `complete: false` → **长稳定前缀**
+- 职责超出对话：知识整理（读目录 → 提取 → 去重 → 归档 `~/dsh-kb/`）、批量文件处理、定时报告；工具面加定时调度（`schedule_create/list/delete`）+ 目录枚举（`list_dir`）
+- 前缀 token 523，静态基线命中率 97.9%——适合无人值守的后台任务
+
+### 鸿蒙狂暴Max `harmony-chat-rampagemax`（不省 token 只讲质量）
+- 缓存策略与 harmony-chat 同侧：`includeRuntimeContext: true`（运行上下文打开）——前缀随快照变化，真实命中率会回落，是「牺牲缓存换质量」的刻意取舍
+- `complete: false` + 网页抓取全开（`fetch:true`）+ 预检穷尽扫描 + 双重验证 + 复盘铁律
+- 前缀 token 914，理想静态基线 98.0% 但真实回落；**慎用**：高 token 消耗，可能一次清空账户额度，仅攻坚疑难 / 跨多文件重构 / 交付前终极检验
+
 ## 省 token × 交付效率实测（2026-08-17，11 道基准 headless）
 
 `agent-default-model.reasoningEffort` 三档 A/B 结果：
@@ -88,7 +110,8 @@ dsh 每次请求的系统提示由这些部分组成（按固定顺序 band 拼�
 
 ## 一句话总结
 
-> `includeRuntimeContext: false` 保证前缀**稳定**（命中率拉到极限），
-> `complete: true` 让前缀**最短**（pro），
-> 保留完整提示段让前缀**最长**（promax 每轮缓存收益最大），
-> 三者的工具 schema 都保持稳定，进一步保护缓存。
+> `includeRuntimeContext: false` 保证前缀**稳定**（命中率拉到极限）——promax / ops / pro 全中；
+> `complete: true` 让前缀**最短**（pro）；
+> 保留完整提示段让前缀**最长**（promax / ops 每轮缓存收益最大）；
+> 开运行上下文的 harmony-chat / rampagemax 前缀随快照变化、命中率回落——基线与「不省 token 只讲质量」的刻意取舍；
+> 五套的工具 schema 都保持稳定，进一步保护缓存。
