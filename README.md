@@ -4,12 +4,12 @@
 
 > 鸿蒙端几乎没人做这件事——原生 ELF/.node 模块、node-pty、Koffi 在这类设备上都加载不了。本仓库把「安装、打补丁、缓存优化、插件安装、自更新」一整套工程沉淀成可复刻的开源方案。
 
-- **四套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力；其中 `harmony-chat-ops` 为常驻后台任务管家模式
+- **五套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力——`harmony-chat`（极简）/ `harmony-chat-pro`（缓存极致）/ `harmony-chat-promax`（六边形交付最强）/ `harmony-chat-ops`（常驻后台任务管家）/ `harmony-chat-rampagemax`（狂暴质量）
 - **六边形 ProMax**（2026-08-18 升级）：缓存命中 / 省 token / 交付能力 / 测试验证 / 集成闭环 / 共存防御六条硬规则同场，把「写完代码」与「系统跑起来」之间的鸿沟写成机械清单，交付纪律对标并反超主流通用 Agent
 - **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
 - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
 - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
-- **五套预设跑分（2026-08-18）**：静态前缀预设缓存命中率实测 71%–98%（promax 87.2%、ops 97.9%、rampagemax 89.9%），唯一开运行上下文的 harmony-chat 跌到 52.9%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
+- **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
 - **node_modules 补丁脚本**：绕开鸿蒙文件系统的两个致命限制（`chmod 600` 被拒、不支持硬链接）
 - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
@@ -51,7 +51,7 @@ cd ~/dsh-test && npm install @deepseek-ai/dsh
 
 ### 2. 部署预设（对话模式）
 
-把四个模式目录拷进 dsh 的用户预设目录：
+把五个模式目录拷进 dsh 的用户预设目录：
 
 ```bash
 mkdir -p ~/.dsh/.agent-presets
@@ -65,7 +65,7 @@ agent-presets:
   default: harmony-chat-promax
 ```
 
-四套模式在 dsh 设置面板「对话模式」下拉里可随时自由切换（切换只影响新建会话）。详见 [docs/CACHE-OPTIMIZATION.md](docs/CACHE-OPTIMIZATION.md) 了解它们为什么快。
+五套模式在 dsh 设置面板「对话模式」下拉里可随时自由切换（切换只影响新建会话）。详见 [docs/CACHE-OPTIMIZATION.md](docs/CACHE-OPTIMIZATION.md) 了解它们为什么快。
 
 | 模式 | persona | 缓存策略 | 工具集 |
 |---|---|---|---|
@@ -73,6 +73,7 @@ agent-presets:
 | `harmony-chat-pro`（缓存极致） | `complete:true` 唯一提示段 | 前缀零变化，命中率极限 | 单 Agent，计划纪律内建 |
 | `harmony-chat-promax`（六边形交付最强） | `complete:false` | 关闭运行上下文，长稳定前缀 | + 子代理 / 工作流 / Ralph 委派组 + 六条交付硬规则 |
 | `harmony-chat-ops`（任务管家） | 常驻后台任务管家 | 关闭运行上下文，前缀稳定 | + 定时调度（schedule_create/list/delete）+ 目录枚举（list_dir） |
+| `harmony-chat-rampagemax`（狂暴 Max） | 不省 token 只讲质量与交付 | 开运行上下文（前缀易变）+ 网页抓取全开 | + 委派组（全 Pro）+ 预检穷尽 / 双重验证 / 复盘铁律 |
 | `harmony-chat-rampagemax`（狂暴Max，慎用） | 不省 token 只讲质量与交付 | **打开**运行上下文，前缀动态、命中率低 | 全部 promax 能力 + 网页 fetch 全开 + 双重验证/交叉互证 + 委派全量 Pro + 预检穷尽扫描 |
 
 ### 2.4 六边形 ProMax：鸿蒙上交付能力的天花板
@@ -253,7 +254,7 @@ MIT License，见 [LICENSE](LICENSE)。
 
 ### 2026-08-18 — 跑分重写为「六边形雷达 + 性能表 + 交付质量表」
 
-跑分从 6 题扩到 6 轴 × 2 题 = 12 道全自动判分，并新增交付质量表（3 道流程题按交付步骤标记命中打分）。核心数字：能力六轴五套全满分（同模型能力地板一致）；缓存命中率经静态 persona 填充后 52.9-89.9% → 93.8-98.0%；交付规范 promax 89（性能与纪律兼得）、rampagemax 92 全场最高（复盘收尾唯一满分，但效率/耗时最贵）。脚本 `bench/bench.mjs` 可复现，原始数据 `result.json`、报告 `result.md`。
+跑分从 6 题扩到 6 轴 × 2 题 = 12 道全自动判分，并新增交付质量表（3 道流程题按交付步骤标记命中打分）。核心数字：能力六轴五套全满分（同模型能力地板一致）；缓存命中率经静态 persona 填充后 52.9-89.9% → 93.8-98.0%；交付规范 promax 89（性能与纪律兼得）、rampagemax 92 全场最高（复盘收尾唯一满分，但效率/耗时最贵）。脚本 `bench/bench.mjs` 可复现，原始数据 `result.json`、报告 `result.md`。同步 README 简介：预设计数四套→五套（模式表补 `harmony-chat-rampagemax` 行），简介跑分数字更新为填充后 93.8-98.0%。
 
 ### 2026-08-18 — 新增狂暴 Max 预设（不省 token 只讲质量）
 
