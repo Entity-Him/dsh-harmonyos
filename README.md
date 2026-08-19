@@ -16,9 +16,9 @@
 > - **六边形 ProMax**（2026-08-18 升级）：缓存命中 / 省 token / 交付能力 / 测试验证 / 集成闭环 / 共存防御六条硬规则同场，把「写完代码」与「系统跑起来」之间的鸿沟写成机械清单，交付纪律对标并反超主流通用 Agent
 > - **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
 > - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
+> - **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
 > - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 > - **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
-> - **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
 > - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
 - **六套「鸿蒙对话模式」Agent 预设**：把 DeepSeek 前缀缓存命中率拉到最高，同时保留任务交付能力——`harmony-chat`（极简）/ `harmony-chat-pro`（缓存极致）/ `harmony-chat-promax`（六边形交付最强）/ `harmony-chat-ops`（常驻后台任务管家）/ `harmony-chat-rampagemax`（狂暴质量）/ `harmony-kb`（知识库专家）
@@ -26,9 +26,9 @@
 - **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
 - **知识库专家 `harmony-kb`**（2026-08-19 新增）：把工作区当知识库——分层检索问答 / 深度研究（Pro 委派提炼）/ 文档整理 / 思维脑图（可导入万兴脑图）/ 笔记生成，并按指令把总结推送进鸿蒙侧载版 Obsidian（`[[双链]]` 只挂已有笔记）。注意：频繁委派 Pro + 多工具调用，CPU 负载高，风扇转得较狠
 - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
+- **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
 - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 - **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
-- **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
 - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
 
 ---
@@ -251,6 +251,39 @@ node scripts/dsh-update.mjs patch
 
 ---
 
+## 鸿蒙桌面客户端（ArkTS UI，`client/`）
+
+把 dsh 做成**鸿蒙电脑（2in1）桌面客户端**：基于 HarmonyOS NEXT ArkTS/ArkUI 声明式开发范式编写，严格参照华为开发者文档（Stage 模型、@Entry/@Component/@State/@Link/@ObjectLink、List/ForEach、bindSheet、@kit.NetworkKit、@kit.ArkData）。
+
+### 界面
+
+- 左侧栏：品牌区、新建会话、会话列表（运行指示、选中高亮）、连接状态 + 设置入口
+- 聊天主区：顶部栏（会话标题 / 停止生成）、消息列表（用户气泡、助手富文本、代码块、工具卡片、流式光标）、底部输入栏（回车发送）
+- 设置面板（bindSheet 半模态）：配置 dsh 服务地址（默认 `http://127.0.0.1:3080`），持久化到 preferences
+
+### 通信（与 dsh 官方 Web 前端同协议）
+
+| 用途 | 端点 | 说明 |
+|---|---|---|
+| 单次 RPC | `POST /api/session.list` 等 | body 为 `client-request` 信封，响应 `server-response` |
+| 事件流 | `GET /api/events.mux` | SSE（`data:` 行 + `\n\n` 分帧），推送 `session/event` 等帧 |
+| 应答 | `POST /api/respond` | 客户端回执 |
+
+流式输出：`@ohos.net.http` 的 `on('dataReceive')` 事件接收 SSE 分块 → `assistant/chunk` 的 `text-delta` 逐字更新消息（`@Observed` + `@ObjectLink` 增量刷新）。
+
+### 构建
+
+```bash
+cd client
+ohpm install
+node hvigorw.js assembleHap
+# 产物：client/entry/build/default/outputs/default/entry-default-unsigned.hap
+```
+
+可用 DevEco Studio 打开 `client/` 直接运行/签名/部署到鸿蒙电脑（2in1）。
+
+---
+
 ## 工具链
 
 | 脚本 | 作用 |
@@ -297,39 +330,6 @@ market 里点 GitHub 源插件时（`process.platform === 'openharmony'` 分支�
 MIT License，见 [LICENSE](LICENSE)。
 
 本项目不包含 dsh 源码，只含独立编写的配置、补丁脚本与文档。dsh 本身由 [DeepSeek](https://github.com/deepseek-ai/dsh) 以 MIT 许可发布，本仓库对其的引用与补丁使用遵循 MIT 条款，特此致谢。
-
----
-
-## 鸿蒙桌面客户端（ArkTS UI，`client/`）
-
-把 dsh 做成**鸿蒙电脑（2in1）桌面客户端**：基于 HarmonyOS NEXT ArkTS/ArkUI 声明式开发范式编写，严格参照华为开发者文档（Stage 模型、@Entry/@Component/@State/@Link/@ObjectLink、List/ForEach、bindSheet、@kit.NetworkKit、@kit.ArkData）。
-
-### 界面
-
-- 左侧栏：品牌区、新建会话、会话列表（运行指示、选中高亮）、连接状态 + 设置入口
-- 聊天主区：顶部栏（会话标题 / 停止生成）、消息列表（用户气泡、助手富文本、代码块、工具卡片、流式光标）、底部输入栏（回车发送）
-- 设置面板（bindSheet 半模态）：配置 dsh 服务地址（默认 `http://127.0.0.1:3080`），持久化到 preferences
-
-### 通信（与 dsh 官方 Web 前端同协议）
-
-| 用途 | 端点 | 说明 |
-|---|---|---|
-| 单次 RPC | `POST /api/session.list` 等 | body 为 `client-request` 信封，响应 `server-response` |
-| 事件流 | `GET /api/events.mux` | SSE（`data:` 行 + `\n\n` 分帧），推送 `session/event` 等帧 |
-| 应答 | `POST /api/respond` | 客户端回执 |
-
-流式输出：`@ohos.net.http` 的 `on('dataReceive')` 事件接收 SSE 分块 → `assistant/chunk` 的 `text-delta` 逐字更新消息（`@Observed` + `@ObjectLink` 增量刷新）。
-
-### 构建
-
-```bash
-cd client
-ohpm install
-node hvigorw.js assembleHap
-# 产物：client/entry/build/default/outputs/default/entry-default-unsigned.hap
-```
-
-可用 DevEco Studio 打开 `client/` 直接运行/签名/部署到鸿蒙电脑（2in1）。
 
 ---
 
