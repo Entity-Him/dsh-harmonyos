@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "DeepSeek Harness 鸿蒙桌面客户端入口模块"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "dsh 桌面客户端主界面"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "DeepSeek Harness"
+    },
+    {
+      "name": "internet_permission_reason",
+      "value": "用于连接本机或局域网内的 dsh 服务，收发对话消息"
+    }
+  ]
+}

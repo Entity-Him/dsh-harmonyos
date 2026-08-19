@@ -1,0 +1,9 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 启动窗口背景 -->
+  <rect width="1024" height="1024" fill="#101318"/>
+  <circle cx="512" cy="460" r="300" fill="#4D6BFE" opacity="0.12"/>
+  <ellipse cx="470" cy="520" rx="190" ry="104" fill="#4D6BFE"/>
+  <path d="M632 530 L780 450 L752 536 L780 622 Z" fill="#4D6BFE"/>
+  <circle cx="368" cy="486" r="17" fill="#101318"/>
+  <circle cx="373" cy="483" r="6" fill="#FFFFFF"/>
+</svg>

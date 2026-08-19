@@ -1,0 +1,15 @@
+# 鸿蒙工程忽略规则
+/node_modules
+/oh_modules
+/.hvigor
+/.idea
+/.cxx
+/.clangd
+/.clang-format
+/.clang-tidy
+**/build
+/.appanalyzer
+*.hap
+*.app
+local.properties
+.DS_Store

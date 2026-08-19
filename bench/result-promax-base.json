@@ -1,0 +1,184 @@
+[
+  {
+    "name": "harmony-chat-promax",
+    "personaChars": 1009,
+    "systemPrompt": 1417,
+    "firstPromptTokens": 794,
+    "cacheHitTokens": 768,
+    "cacheHitRate": 0.9673,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 90,
+    "deliveryNorm": 78,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 100,
+        "out": "交付新插件时，写完代码只是完成一半；完整闭环是「预检 → 集成 → 重启加载 → 核对启动项 → 实测生效」。具体步骤如下：\n\n## 1. 预检（落地前）\n\n- 检查新插件的 `namespace`、`wiring.id`、`system-prompt` 槽位（如 `deployment:persona`）和暴露的工具"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 100,
+        "out": "我通过可复现的客观证据证明完成，按优先级排列：\n\n1. **语法/静态检查**：`node --check` 或对应语言检查器通过，无未用变量、死代码、多余注释。\n2. **自动化测试**：新增或关联的单元/集成测试全绿（有测试框架时）。\n3. **集成状态**：`node_modules` 软链建立成功；重启 dsh"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 33,
+        "out": "**结论**：任务完成后我会做四类收尾——**验证、自查、清理、汇报**。核心原则是：交付的标准是“系统能跑起来”，而不是“文件写对了”。\n\n**细节**：\n\n1. **功能验证（最优先）**  \n   - 在 dsh 插件环境中，不是写完文件就结束，而是检查 `boot entries` 是否加载，并**实测功能生效"
+      }
+    },
+    "longrun": {
+      "L1": {
+        "id": "L1",
+        "name": "长程状态维持",
+        "score": 84,
+        "hit": 3,
+        "neg": 1,
+        "rounds": 2,
+        "out": "明白，基于我维护的任务账本继续推进，不重新规划。\n\n---\n\n**任务账本（当前）**\n- **Goal**：将 notes/ 下 5 个 md 文件按主题归档至 docs/ 子目录，全部完成前不停止。\n- **Verified**：2/5 已完成（归档并核对）。\n- **Open**：3 个待处理（含正在处理的第 3"
+      },
+      "L2": {
+        "id": "L2",
+        "name": "失败恢复分支",
+        "score": 100,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "结论：`EACCES` 已不是“文件是否存在”的问题，而是当前运行脚本的用户在访问路径时没有足够的读/执行权限。按下面顺序排查，每一步都有明确依据。\n\n---\n\n## 第 1 步：确认运行用户与文件归属\n\n```bash\nid\nls -l /app/config.json\n```\n\n**依据**：EACCES 最常见的"
+      },
+      "L3": {
+        "id": "L3",
+        "name": "跨文件一致性广播",
+        "score": 100,
+        "hit": 4,
+        "neg": 0,
+        "rounds": 1,
+        "out": "改共享文件里的公开接口名，完整影响面如下，按优先级排列：\n\n## 一、代码引用（必须全仓搜索，改完为止）\n\n1. **所有 import / require 引用**：`import { RATE_LIMIT }`、`const { RATE_LIMIT } = require('...')`、`constants.R"
+      }
+    },
+    "longrunNorm": 95,
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 171641,
+    "taskDetails": [
+      {
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 153,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
+      },
+      {
+        "id": "m2",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 37,
+        "verif": false,
+        "retro": false,
+        "out": "5050"
+      },
+      {
+        "id": "c1",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 451,
+        "verif": true,
+        "retro": false,
+        "out": "```javascript\n/**\n * 判断一个整数是否为素数（质数）\n * @param {number} n 要判断的整数\n * @returns {boolean} 是素数返回 true，否则返回 false\n */\nfunction isPrime(n) {\n  // 边界：小于 2 的数（含 0、1、负数）"
+      },
+      {
+        "id": "c2",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 77,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 28,
+        "verif": false,
+        "retro": false,
+        "out": "A"
+      },
+      {
+        "id": "l2",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 137,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0，所以 x ÷ x = 0 ÷ 0，在数学中未定义。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 35,
+        "verif": false,
+        "retro": false,
+        "out": "长江"
+      },
+      {
+        "id": "f2",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 85,
+        "verif": false,
+        "retro": false,
+        "out": "300000"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 296,
+        "verif": true,
+        "retro": false,
+        "out": "最少硬币数为 **5 枚**。\n\n组合：**1 枚 25 元 + 2 枚 10 元 + 2 枚 1 元**\n\n验证：\n\n- 25 × 1 = 25\n- 10 × 2 = 20\n- 1 × 2 = 2\n- 合计：25 + 20 + 2 = **47 元**\n\n硬币总数：1 + 2 + 2 = **5 枚**，这是最少方案"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 107,
+        "verif": false,
+        "retro": false,
+        "out": "没有任何一天两人都有空。小明有空的日子（周一、周三、周五）和小红有空的日子（周二、周四）完全没有交集，所以会议无法安排。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 269,
+        "verif": false,
+        "retro": false,
+        "out": "不相等。在计算机浮点数运算中：\n\n- `0.1 + 0.2` 的结果是 `0.30000000000000004`\n- 所以 `0.1 + 0.2 === 0.3` 为 `false`\n\n原因是 `0.1` 和 `0.2` 在二进制浮点数（IEEE 754）中无法被精确表示，只能存储为近似值，累加后误差被保留下来。\n\n"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 93,
+        "verif": false,
+        "retro": false,
+        "out": "这个说法不正确。\n\n2 的 10 次方是 **1024**，不是 2048。\n\n**2048** 等于 2 的 **11** 次方。"
+      }
+    ],
+    "rounds": 2
+  }
+]

@@ -174,6 +174,22 @@ cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.j
 
 > ⚠ `fs-sandbox` 是纯 JS 的 fs 服务提供方，**不能禁**（`tool-fs` 靠它）。headless 补丁只禁原生依赖插件行。
 
+### 3.6 一键更新（推荐）
+
+我们每次迭代后会推送到 GitHub。想要同步到最新版，在仓库目录跑一行即可（自动处理官方 dsh 升级 + 预设/插件/补丁同步，最后自动重启服务）：
+
+```bash
+sh scripts/dsh-hm-update.sh          # 一键更新并重启
+sh scripts/dsh-hm-update.sh check    # 只看状态不更新
+```
+
+它做的事：
+1. **官方 dsh**：`npm view @deepseek-ai/dsh` 比对已装版本，有新版本就升级并重打鸿蒙 node_modules 补丁
+2. **本仓库**：以 `github.com/Entity-Him/dsh-harmonyos` main 分支的 commit SHA 判定版本（写入 `~/.dsh/.dsh-harmonyos.version`），有更新就从 codeload 下载 tarball，同步 `presets/`、`plugins/`、`scripts/`、`harmony*.patch.yml` 到本机仓库副本，并重新部署预设与 `dsh-tool-list` 插件
+3. **重启** dsh web，新预设即时生效
+
+更新会先把旧预设备份到 `~/.dsh/.dsh-harmonyos-backup/`，**不动** `~/.dsh/settings.yaml`、凭据与你的个性化配置。
+
 ### 4. 打 node_modules 补丁（升级/重装后需重打）
 
 ```bash
@@ -243,6 +259,7 @@ node scripts/dsh-update.mjs patch
 | `scripts/dsh-update.mjs` | dsh 检查更新：`check` / `patch` / `install` / `rollback`，升级后自动重打补丁 |
 | `scripts/dsh-update-web.sh` | 设置与更新页（3098，内嵌 HTML） |
 | `scripts/dsh-hm-install.mjs` | GitHub 源插件一键安装（绕过 isogit 拦截） |
+| `scripts/dsh-hm-update.sh` | **一键更新**（官方 dsh 升级 + 仓库预设/插件/补丁同步，`check` / 默认 update） |
 
 所有脚本支持 `NODE_BIN` 环境变量覆盖 node 路径（鸿蒙默认 `/data/service/hnp/node.org/node_v24.13.0/bin/node`）。
 
@@ -283,7 +300,51 @@ MIT License，见 [LICENSE](LICENSE)。
 
 ---
 
+## 鸿蒙桌面客户端（ArkTS UI，`client/`）
+
+把 dsh 做成**鸿蒙电脑（2in1）桌面客户端**：基于 HarmonyOS NEXT ArkTS/ArkUI 声明式开发范式编写，严格参照华为开发者文档（Stage 模型、@Entry/@Component/@State/@Link/@ObjectLink、List/ForEach、bindSheet、@kit.NetworkKit、@kit.ArkData）。
+
+### 界面
+
+- 左侧栏：品牌区、新建会话、会话列表（运行指示、选中高亮）、连接状态 + 设置入口
+- 聊天主区：顶部栏（会话标题 / 停止生成）、消息列表（用户气泡、助手富文本、代码块、工具卡片、流式光标）、底部输入栏（回车发送）
+- 设置面板（bindSheet 半模态）：配置 dsh 服务地址（默认 `http://127.0.0.1:3080`），持久化到 preferences
+
+### 通信（与 dsh 官方 Web 前端同协议）
+
+| 用途 | 端点 | 说明 |
+|---|---|---|
+| 单次 RPC | `POST /api/session.list` 等 | body 为 `client-request` 信封，响应 `server-response` |
+| 事件流 | `GET /api/events.mux` | SSE（`data:` 行 + `\n\n` 分帧），推送 `session/event` 等帧 |
+| 应答 | `POST /api/respond` | 客户端回执 |
+
+流式输出：`@ohos.net.http` 的 `on('dataReceive')` 事件接收 SSE 分块 → `assistant/chunk` 的 `text-delta` 逐字更新消息（`@Observed` + `@ObjectLink` 增量刷新）。
+
+### 构建
+
+```bash
+cd client
+ohpm install
+node hvigorw.js assembleHap
+# 产物：client/entry/build/default/outputs/default/entry-default-unsigned.hap
+```
+
+可用 DevEco Studio 打开 `client/` 直接运行/签名/部署到鸿蒙电脑（2in1）。
+
+---
+
 ## 更新记录
+
+### 2026-08-20 — 鸿蒙桌面客户端（ArkTS UI）+ 鸿蒙底层适配
+
+新增 `client/` 目录：基于 HarmonyOS NEXT ArkTS/ArkUI 声明式开发范式的 dsh 鸿蒙电脑（2in1）桌面客户端，hvigor 构建通过，产物 `client/entry/build/default/outputs/default/entry-default-unsigned.hap`。
+
+**与 dsh 官方 Web 前端同协议对接**（`POST /api/*` RPC 信封 + `GET /api/events.mux` SSE 流式推送），并完成鸿蒙底层适配：
+
+- **SSE 断线自动重连**：`@ohos.net.http` 流式接收，断线指数退避重连（2s→30s）——dsh 服务被 `dsh-update`/`dsh-web.sh` 重启后客户端自动恢复
+- **六套鸿蒙对话模式预设接入**：设置面板可下拉选择 `harmony-chat(-pro/-promax/-ops/-rampagemax)/harmony-kb`（`agentPreset.list`），新建会话自动带上所选预设
+- **服务启动引导**：设置面板内置 `sh ~/bin/dsh-web.sh`（node 全路径 + harmony.patch.yml + 3080）提示
+- **桌面窗口适配**：1200×800 默认尺寸、2in1 形态、深色品牌主题（DeepSeek 蓝）
 
 ### 2026-08-19 — 新增鸿蒙知识库专家预设（harmony-kb）+ Obsidian 双链笔记
 

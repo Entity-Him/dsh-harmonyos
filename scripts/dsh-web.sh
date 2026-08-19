@@ -13,6 +13,36 @@ is_up() {
   /usr/bin/curl -s -o /dev/null --fail --max-time 1 "http://127.0.0.1:$PORT/" 2>/dev/null
 }
 
+# —— 自动部署（幂等）：缺啥补啥，跑一次即可 ——
+REPO_PRESETS="$SCRIPT_DIR/../presets"
+PRESET_DIR="$HOME/.dsh/.agent-presets"
+
+if [ ! -d "$DIR/node_modules/@deepseek-ai/dsh" ]; then
+  echo "dsh-web: dsh not installed at $DIR"
+  echo "  run: cd $DIR && npm install @deepseek-ai/dsh"
+  exit 1
+fi
+
+# 部署鸿蒙对话模式预设（六套 harmony-*，缺哪个拷哪个）
+if [ -d "$REPO_PRESETS" ]; then
+  mkdir -p "$PRESET_DIR"
+  for p in "$REPO_PRESETS"/*/; do
+    [ -d "$p" ] || continue
+    name=$(basename "$p")
+    if [ ! -d "$PRESET_DIR/$name" ]; then
+      cp -r "$p" "$PRESET_DIR/$name" 2>/dev/null && echo "dsh-web: deployed preset $name"
+    fi
+  done
+fi
+
+# 用户默认对话模式：未配置时设为 harmony-chat-promax
+if [ -f "$HOME/.dsh/settings.yaml" ]; then
+  grep -q "default:" "$HOME/.dsh/settings.yaml" 2>/dev/null || \
+    printf "agent-presets:\n  default: harmony-chat-promax\n" >> "$HOME/.dsh/settings.yaml"
+else
+  printf "agent-presets:\n  default: harmony-chat-promax\n" >> "$HOME/.dsh/settings.yaml"
+fi
+
 if is_up; then
   echo "dsh-web: already running at http://127.0.0.1:$PORT/ (skip)"
   exit 0

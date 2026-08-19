@@ -1,0 +1,13 @@
+{
+  "modelVersion": "6.0.0",
+  "name": "dsh_harmonyos_client",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness (dsh) 鸿蒙电脑桌面客户端",
+  "main": "",
+  "author": "dsh-harmonyos",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hypium": "1.0.19"
+  }
+}

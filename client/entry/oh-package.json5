@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "dsh 鸿蒙桌面客户端入口模块",
+  "main": "",
+  "author": "dsh-harmonyos",
+  "license": "MIT",
+  "dependencies": {}
+}

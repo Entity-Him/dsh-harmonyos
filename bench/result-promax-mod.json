@@ -1,0 +1,184 @@
+[
+  {
+    "name": "harmony-chat-promax",
+    "personaChars": 1374,
+    "systemPrompt": 1782,
+    "firstPromptTokens": 1021,
+    "cacheHitTokens": 896,
+    "cacheHitRate": 0.8776,
+    "axes": {
+      "数学": 100,
+      "代码": 75,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 96,
+    "effTokensPerCorrect": 87,
+    "deliveryNorm": 84,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 100,
+        "out": "从写完代码到确认生效，按以下闭环执行：\n\n### 1. 静态自查（写完即做）\n- 运行语法检查：`node --check 插件文件` 或对应测试。\n- 清理死代码、未用变量、多余注释。\n- 对照同构的上线插件，检查结构是否对齐（namespace、wiring.id、system-prompt 槽位、工具注册方式）。"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 100,
+        "out": "完成的标准是「系统能跑起来」，不是「文件正确」。我按任务轻重分档，每档都有对应证据：\n\n**轻任务（单文件局部修改）**\n- 语法检查：`node --check` 或相关语言工具通过\n- 单测/相关测试跑通，给出命令与输出\n- 若涉及明显逻辑，给出关键分支的实测输出\n\n**重任务（新增功能、跨文件改动）**\n- 集成"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 50,
+        "out": "任务完成后，我会做以下收尾工作：\n\n**1. 验证（先于一切宣布完成）**\n- 运行验证命令，拿到真实输出作为证据（语法检查、测试、重启服务核对加载）\n- 做到「改完有证据」，而不是「文件写对了」\n\n**2. 覆盖检查（对照 Goal）**\n- 把最终结果逐项对照最初的 Goal，确认目标内每项都已交付\n- 同时给出验"
+      }
+    },
+    "longrun": {
+      "L1": {
+        "id": "L1",
+        "name": "长程状态维持",
+        "score": 100,
+        "hit": 3,
+        "neg": 0,
+        "rounds": 2,
+        "out": "**任务账本（当前状态）**\n\n- **Goal**：把 notes/ 下 5 个 md 文件按主题归档到 docs/ 对应子目录，全部完成前不停止。\n- **Verified**：第 1、2、3 个文件已归档至 docs/ 对应主题子目录。\n- **Open**：第 4、5 个文件待处理。\n- **Next**：处理"
+      },
+      "L2": {
+        "id": "L2",
+        "name": "失败恢复分支",
+        "score": 100,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "**结论**：`EACCES` 表示权限不足，而非文件缺失。说明文件已存在，但当前进程没有足够的读权限。处置思路是：先对比「进程身份」与「文件/路径权限」，再逐层排除属主、目录权限、ACL、安全策略和挂载限制。\n\n---\n\n**处置步骤与依据**\n\n1. **确认运行身份与报错现场**\n   - 依据：`EACCES`"
+      },
+      "L3": {
+        "id": "L3",
+        "name": "跨文件一致性广播",
+        "score": 88,
+        "hit": 3,
+        "neg": 0,
+        "rounds": 1,
+        "out": "结论：把 `constants.js` 里 `RATE_LIMIT` 改成 `RATE_CAP`，真正的工作是**全仓搜索并更新所有引用点，然后完成集成验证**。完整清单如下：\n\n1. **全仓搜索**  \n   - 在项目根目录用 `grep -r \"RATE_LIMIT\"` 搜索所有出现位置（排除 `node_mo"
+      }
+    },
+    "longrunNorm": 96,
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 11,
+    "tasksTotal": 12,
+    "elapsedMs": 146252,
+    "taskDetails": [
+      {
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 261,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
+      },
+      {
+        "id": "m2",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 12,
+        "verif": false,
+        "retro": false,
+        "out": "5050"
+      },
+      {
+        "id": "c1",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 477,
+        "verif": true,
+        "retro": false,
+        "out": "```js\nfunction isPrime(n) {\n  if (!Number.isInteger(n)) return false;\n  if (n <= 1) return false;\n  if (n <= 3) return true;\n  if (n % 2 === 0 || n % 3 === 0) r"
+      },
+      {
+        "id": "c2",
+        "axis": "代码",
+        "ok": 0,
+        "ctk": 19,
+        "verif": false,
+        "retro": false,
+        "out": "8"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 26,
+        "verif": false,
+        "retro": false,
+        "out": "A"
+      },
+      {
+        "id": "l2",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 143,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0。\n\n因此 x ÷ x = 0 ÷ 0，在数学中这是**未定义**的（不能除以 0）。所以该表达式无意义，没有确定的值。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 21,
+        "verif": false,
+        "retro": false,
+        "out": "长江"
+      },
+      {
+        "id": "f2",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 20,
+        "verif": false,
+        "retro": false,
+        "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 260,
+        "verif": true,
+        "retro": false,
+        "out": "最少硬币数：**5 枚**\n\n组合：\n\n- 25 元 × 1 = 25\n- 10 元 × 2 = 20\n- 5 元 × 0 = 0\n- 1 元 × 2 = 2\n\n验证合计：25 + 20 + 0 + 2 = **47 元** ✅"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 57,
+        "verif": false,
+        "retro": false,
+        "out": "没有一天两人都有空。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 282,
+        "verif": false,
+        "retro": false,
+        "out": "在常见的浮点数表示（如 JavaScript、Python 等按 IEEE 754 双精度存储）中，`0.1 + 0.2` 的结果是 `0.30000000000000004`，并不严格等于 `0.3`。\n\n原因：`0.1` 和 `0.2` 都无法用二进制精确表示，只能取近似值，相加后误差被保留下来。数学上两者之和当然"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 70,
+        "verif": false,
+        "retro": false,
+        "out": "2 的 10 次方是 1024，不是 2048。2048 是 2 的 11 次方，所以这个说法是错误的。"
+      }
+    ],
+    "rounds": 2
+  }
+]

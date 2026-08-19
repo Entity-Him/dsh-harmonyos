@@ -1,0 +1,12 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 桌面客户端图标（模块内） -->
+  <rect width="1024" height="1024" rx="228" fill="#1B1E27"/>
+  <circle cx="512" cy="512" r="330" fill="#4D6BFE" opacity="0.16"/>
+  <circle cx="512" cy="512" r="236" fill="#4D6BFE"/>
+  <ellipse cx="470" cy="548" rx="212" ry="118" fill="#FFFFFF"/>
+  <path d="M652 560 L812 470 L780 566 L812 660 Z" fill="#FFFFFF"/>
+  <circle cx="356" cy="510" r="20" fill="#1B1E27"/>
+  <circle cx="362" cy="506" r="7" fill="#FFFFFF"/>
+  <path d="M430 618 Q382 700 330 678 Q372 630 418 600 Z" fill="#CFD6FF"/>
+  <path d="M300 596 Q470 664 640 592 Q560 672 470 672 Q380 672 300 596 Z" fill="#CFD6FF" opacity="0.9"/>
+</svg>

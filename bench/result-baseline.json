@@ -1,0 +1,907 @@
+[
+  {
+    "name": "harmony-chat",
+    "personaChars": 299,
+    "systemPrompt": 707,
+    "firstPromptTokens": 273,
+    "cacheHitTokens": 256,
+    "cacheHitRate": 0.9377,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 70,
+    "deliveryNorm": 61,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 75,
+        "out": "以下是 dsh 插件交付的标准闭环步骤（写完代码 → 确认生效）：\n\n1. **代码落地**\n   在 `dsh/plugins/<plugin_name>/` 完成插件代码，确保包含清单文件（如 `plugin.yaml` 或 `__init__.py`）声明入口、名称、版本。\n\n2. **注册插件**\n   在 `"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 75,
+        "out": "结论：用「可复现的验证结果」而非口头声称。核心证据链是：变更 diff → 针对性测试 → 全量回归 → 运行状态。\n\n验证方法清单：\n\n1. **针对性测试**：跑与被改代码直接相关的测试用例（单测/集成），展示通过结果。\n2. **全量回归**：执行完整测试套件，确认无副作用。\n3. **静态检查**：lint /"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 33,
+        "out": "任务完成后，我会做这几件收尾：\n\n1. **验证结果**：检查输出是否符合要求，必要时运行测试或复查关键步骤。\n2. **清理临时文件**：移除过程中产生的临时/中间文件，保持工作区整洁。\n3. **检查变更最小化**：确保只改动必要部分，不引入无关修改。\n4. **总结汇报**：向用户简要说明完成情况、关键决策和遗留"
+      }
+    },
+    "longrun": {
+      "L1": {
+        "id": "L1",
+        "name": "长程状态维持",
+        "score": 67,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "**下一步：处理第 4 个文件 notes/ideas.md**\n\n1. 读取 notes/ideas.md 内容，判断主题（如灵感/创意）。\n2. 归档至对应子目录：docs/ideas/ideas.md（无则新建）。\n3. 确认原文件已移除，更新账本：\n\n- Verified: 4（含此文件）\n- Open: no"
+      },
+      "L2": {
+        "id": "L2",
+        "name": "失败恢复分支",
+        "score": 100,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "结论：文件在但无法读，说明访问路径上仍有权限限制。按“谁访问、怎么访问”的顺序排查并修正。\n\n第一步：确认运行身份与文件属主  \n执行 `whoami` 和 `ls -ld /app /app/config.json`  \n依据：EACCES 表示该用户对目标无读/执行权限。先看运行用户是谁、文件属主是谁，才能判断是权"
+      },
+      "L3": {
+        "id": "L3",
+        "name": "跨文件一致性广播",
+        "score": 75,
+        "hit": 3,
+        "neg": 0,
+        "rounds": 1,
+        "out": "**完整检查/更新清单：**\n\n**1. 代码引用层**\n- 全仓库搜索 `RATE_LIMIT`（含变体 `rateLimit`、`rate_limit`、`ratelimit`）\n- 所有 `import { RATE_LIMIT }` / `require(...).RATE_LIMIT` 引入点\n- 所有对象访"
+      }
+    },
+    "longrunNorm": 81,
+    "verifRate": 0,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 138785,
+    "taskDetails": [
+      {
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 210,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
+      },
+      {
+        "id": "m2",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 37,
+        "verif": false,
+        "retro": false,
+        "out": "5050"
+      },
+      {
+        "id": "c1",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 146,
+        "verif": false,
+        "retro": false,
+        "out": "```javascript\nfunction isPrime(n) {\n  if (n < 2) return false;\n  if (n < 4) return true;\n  if (n % 2 === 0 || n % 3 === 0) return false;\n  for (let i = 5; i * i"
+      },
+      {
+        "id": "c2",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 35,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 31,
+        "verif": false,
+        "retro": false,
+        "out": "A"
+      },
+      {
+        "id": "l2",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 86,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0，因此 x ÷ x = 0 ÷ 0，**未定义**。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 30,
+        "verif": false,
+        "retro": false,
+        "out": "长江"
+      },
+      {
+        "id": "f2",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 34,
+        "verif": false,
+        "retro": false,
+        "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 251,
+        "verif": false,
+        "retro": false,
+        "out": "最少 **5 枚**：\n\n- 25 × 1 = 25  \n- 10 × 2 = 20  \n- 1 × 2 = 2  \n\n合计：25 + 20 + 2 = **47 元**\n\n组合：**25、10、10、1、1**，共 5 枚。"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 70,
+        "verif": false,
+        "retro": false,
+        "out": "没有一天两人都有空，所以无法安排共同会议。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 241,
+        "verif": false,
+        "retro": false,
+        "out": "不相等。在浮点运算中 `0.1 + 0.2` 的结果是 `0.30000000000000004`，因此不等于 `0.3`。数学上则相等，这是二进制浮点精度导致的误差。"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 43,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方 = 1024，不是 2048。"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-pro",
+    "personaChars": 532,
+    "systemPrompt": 532,
+    "firstPromptTokens": 406,
+    "cacheHitTokens": 384,
+    "cacheHitRate": 0.9458,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 94,
+    "deliveryNorm": 72,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 75,
+        "out": "直接结论：交付一个新插件需依次完成“代码与配置落盘 → 装入插件目录 → 触发加载/刷新 → 确认插件被识别 → 冒烟验证”五个环节。由于当前环境无法运行 Shell 与子进程，我会用文件编辑、静态检查 Skill、网页检索及可用的校验工具来逐步完成并验证。\n\n---\n\n### 从写完代码到确认生效的完整步骤\n\n1. "
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 75,
+        "out": "在当前鸿蒙设备环境中，Shell/子进程不可用，我无法运行代码或测试，因此交付的证据主要是**静态验证结果**与**逻辑推导说明**。以下是我改动代码后能提供的具体证据和验证方法：\n\n## 证据\n\n- **变更清单**：列出所有改动的文件，每条附上改动原因。\n- **完整 Diff 快照**：统一格式显示增删行，标注每"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 67,
+        "out": "任务完成后，我会做以下收尾工作：**验证结果、更新进度记录、清理临时痕迹，并给出简明总结**。具体来说：\n\n1. **复核交付物**  \n   - 对照需求逐项检查是否全部满足，边界条件是否有遗漏。  \n   - 文件改动后重新读取或静态检查，确认没有引入明显错误（如语法错误、路径引用错误等）。  \n   - 涉及多文"
+      }
+    },
+    "longrun": {
+      "L1": {
+        "id": "L1",
+        "name": "长程状态维持",
+        "score": 0,
+        "hit": 0,
+        "neg": 0,
+        "rounds": 2,
+        "out": ""
+      },
+      "L2": {
+        "id": "L2",
+        "name": "失败恢复分支",
+        "score": 100,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "收到。针对“创建 config.json 后仍报 EACCES（权限被拒绝）”的问题，按以下步骤处置，并说明每一步的判读依据：\n\n---\n\n### 步骤 1：捕获完整错误信息，确认失败系统调用目标  \n**操作**：查看构建脚本的完整日志，找到 `EACCES` 对应的具体文件路径和操作类型（读取、写入、加载等）。  "
+      },
+      "L3": {
+        "id": "L3",
+        "name": "跨文件一致性广播",
+        "score": 75,
+        "hit": 3,
+        "neg": 0,
+        "rounds": 1,
+        "out": "核心结论：你需要**全局搜索项目里所有出现 `RATE_LIMIT` 的地方**，按「直接引用 → 衍生导出 → 类型/字符串 → 测试/文档 → 外部存储协议」逐类排查。以下为完整清单，按优先级排列：\n\n## 1. 直接引用（最高优先级）\n所有 `import { RATE_L"
+      }
+    },
+    "longrunNorm": 58,
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 222343,
+    "taskDetails": [
+      {
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 198,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
+      },
+      {
+        "id": "m2",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 55,
+        "verif": false,
+        "retro": false,
+        "out": "5050"
+      },
+      {
+        "id": "c1",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 455,
+        "verif": true,
+        "retro": false,
+        "out": "直接给出结论：用 `isPrime(n)` 判断素数，只需处理正整数，循环到 `sqrt(n)` 即可。\n\n```javascript\nfunction isPrime(n) {\n  // 小于 2 的数不是素数\n  if (n < 2) return false;\n\n  // 2 是素数\n  if (n === 2)"
+      },
+      {
+        "id": "c2",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 108,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 33,
+        "verif": false,
+        "retro": false,
+        "out": "A"
+      },
+      {
+        "id": "l2",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 67,
+        "verif": false,
+        "retro": false,
+        "out": "0 ÷ 0 是未定义（数学上没有意义），所以不能计算出一个确定的值。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 21,
+        "verif": false,
+        "retro": false,
+        "out": "长江"
+      },
+      {
+        "id": "f2",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 89,
+        "verif": false,
+        "retro": false,
+        "out": "299792.458"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 286,
+        "verif": true,
+        "retro": false,
+        "out": "最少需要 **5 枚**硬币。\n\n组合：  \n**25 + 10 + 10 + 1 + 1 = 47**\n\n验证：  \n25 + 10 + 10 + 1 + 1 = 47 ✔\n\n4 枚硬币最多为 25 + 10 + 10 + 1 = 46，不够 47，因此 5 枚是最少。"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 94,
+        "verif": false,
+        "retro": false,
+        "out": "没有任何一天能同时开会，因为小明有空的日子（周一、周三、周五）和小红有空的日子（周二、周四）完全没有交集。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 444,
+        "verif": false,
+        "retro": false,
+        "out": "不相等。在常见编程语言中，`0.1 + 0.2` 的结果通常是 `0.30000000000000004`，所以：\n\n```javascript\n0.1 + 0.2 === 0.3  // false\n```\n\n原因是计算机使用二进制浮点数（如 IEEE 754）存储小数，而 `0.1` 和 `0.2` 都无法被二进制"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 69,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方等于 **1024**，不是 2048。2048 是 2 的 11 次方。"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-promax",
+    "personaChars": 1009,
+    "systemPrompt": 1417,
+    "firstPromptTokens": 794,
+    "cacheHitTokens": 768,
+    "cacheHitRate": 0.9673,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 102,
+    "deliveryNorm": 89,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 100,
+        "out": "交付一个新插件，从写完代码到确认生效，核心是走完「集成闭环」，不能停在文件正确。以下是完整步骤。\n\n## 1. 写完代码后的自查\n- 语法检查：对插件主文件执行 `node --check <file>`，确保无语法错误。\n- 静态审查：清理死代码、未用变量、多余注释，确保代码路径完整。\n- 核对模板一致性：对照已上线"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 100,
+        "out": "先说结论：我会把「验证证据」分成四类——静态检查、动态测试、系统集成、变更可溯。具体如下：\n\n## 1. 静态证据（写完后立即自查）\n- **语法/类型检查**：`node --check <file>`、`tsc --noEmit`、`eslint` 等，附上干净的退出码和输出。\n- **diff 审查**：`git"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 67,
+        "out": "任务完成后，我会按以下顺序收尾：\n\n**1. 验证闭环（最重要）**\n- 确认系统真正跑起来，而不只是文件写对了\n- 语法检查、功能实测、加载项核对（如 boot entries）\n- 验证无死代码、未用变量、多余注释\n\n**2. 影响面复查**\n- 确认改动没有破坏共享资源（namespace、wiring、tool"
+      }
+    },
+    "longrun": {
+      "L1": {
+        "id": "L1",
+        "name": "长程状态维持",
+        "score": 67,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "当前任务状态：**2/5 已完成归档，待办 3 个（File3、File4、File5）**。\n\n接下来直接做的事：\n\n1. **处理 File3.md**：读取内容 → 判定主题（如数据库/运维/工具链等） → 移动至 `docs/对应主题/` → 验证落位与内容完整。\n2. **处理 File4.md**：同上流程"
+      },
+      "L2": {
+        "id": "L2",
+        "name": "失败恢复分支",
+        "score": 100,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "## 结论\n\n出现 `EACCES（权限被拒绝）`，说明配置**文件已存在，但当前运行构建脚本的用户无权读取（或无法穿越目录路径）**。处置顺序应为：**诊断 → 定位具体拒绝点 → 精准修复 → 重跑验证**，不要盲目堆叠 chmod。\n\n---\n\n## 处置步骤与依据\n\n### 第 1 步：诊断，缩小问题范围\n\n先"
+      },
+      "L3": {
+        "id": "L3",
+        "name": "跨文件一致性广播",
+        "score": 100,
+        "hit": 4,
+        "neg": 0,
+        "rounds": 1,
+        "out": "以下是重命名共享常量 `RATE_LIMIT` → `RATE_CAP` 后，除了 `constants.js` 本身之外必须检查/更新的完整清单：\n\n---\n\n## 1. 源代码引用\n- **所有直接引用**：全局搜索 `RATE_LIMIT`（区分大小写），覆盖 `.js`、`.ts`、`.jsx`、`.tsx`、"
+      }
+    },
+    "longrunNorm": 89,
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 179882,
+    "taskDetails": [
+      {
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 185,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
+      },
+      {
+        "id": "m2",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 56,
+        "verif": false,
+        "retro": false,
+        "out": "5050"
+      },
+      {
+        "id": "c1",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 240,
+        "verif": true,
+        "retro": false,
+        "out": "这是一个简单的素数判断函数，直接给出实现：\n\n```javascript\nfunction isPrime(n) {\n  if (n < 2) return false;\n  if (n === 2) return true;\n  if (n % 2 === 0) return false;\n  for (let i "
+      },
+      {
+        "id": "c2",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 32,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 26,
+        "verif": false,
+        "retro": false,
+        "out": "A"
+      },
+      {
+        "id": "l2",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 100,
+        "verif": false,
+        "retro": false,
+        "out": "因为 x = 42 − 42 = 0，所以 x ÷ x = 0 ÷ 0，这在数学上是未定义（不能除以零）。因此该表达式无确定值。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 21,
+        "verif": false,
+        "retro": false,
+        "out": "长江"
+      },
+      {
+        "id": "f2",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 75,
+        "verif": false,
+        "retro": false,
+        "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 514,
+        "verif": true,
+        "retro": false,
+        "out": "最少硬币数是 **5**。\n\n组合：**25 + 10 + 10 + 1 + 1 = 47**\n\n验证：\n- 25 + 10 + 10 + 1 + 1 = 47\n- 硬币数：5 枚\n\n这是最优解：若不用 25，最多 4 个 10 得到 40，剩余 7 至少还需 3 枚（5+1+1），共 7 枚；用 1 个 25 后剩余"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 119,
+        "verif": false,
+        "retro": false,
+        "out": "没有这样的日子：小明有空的是周一、周三、周五，小红有空的是周二、周四，交集为空，所以两人无法同时参加会议。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 420,
+        "verif": false,
+        "retro": false,
+        "out": "**不精确等于。** 在计算机的二进制浮点数中，`0.1 + 0.2` 得到的是 `0.30000000000000004`，而不是 `0.3`，所以 `0.1 + 0.2 === 0.3` 为 `false`。\n\n原因：`0.1` 和 `0.2` 转成二进制都是无限循环小数，存储时被迫舍入，累计误差就显现出来了。这不"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 102,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方（2^10）等于 **1024**，而不是 2048。2048 是 2 的 11 次方（2^11）。"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-ops",
+    "personaChars": 647,
+    "systemPrompt": 1055,
+    "firstPromptTokens": 523,
+    "cacheHitTokens": 512,
+    "cacheHitRate": 0.979,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 96,
+    "deliveryNorm": 53,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 50,
+        "out": "在这个无 Shell、无子进程的鸿蒙 dsh 环境里，插件交付流程可以拆成四阶段：\n\n---\n\n**阶段 1：代码落盘（一次性写全）**\n\n- 用 `tool-fs` 创建插件文件，路径遵循约定，例如 `~/dsh-plugins/<plugin-name>/index.md` 或对应扩展名。\n- 一次写全，不拆碎；写"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 75,
+        "out": "在当前环境中，我不能执行 Shell、运行二进制或做真正的动态测试，所以“证明完成”靠的是**静态证据与可追溯记录**。具体我会交付以下几类验证材料：\n\n1. **文件级证据**  \n   - 用 tool-fs 读取修改后的文件，保存完整内容快照。  \n   - 记录修改前/后的文件路径、文件名、写入时间。  \n  "
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 33,
+        "out": "任务完成后，我的收尾流程如下：\n\n1. **验证交付物**：检查写入的文件是否完整、路径是否正确、格式是否符合约定（如 markdown 结构、命名规则）。\n2. **汇报产出**：向你简短说明完成情况，包括产出文件的绝对路径（如 `~/dsh-kb/...`），方便你直接查阅。\n3. **归档记录**：对于批量处理类"
+      }
+    },
+    "longrun": {
+      "L1": {
+        "id": "L1",
+        "name": "长程状态维持",
+        "score": 100,
+        "hit": 3,
+        "neg": 0,
+        "rounds": 2,
+        "out": "## 基于账本的当前状态\n\n- **已完成**：3 个（`meeting-2025-01-05.md` → docs/meetings、`project-alpha-design.md` → docs/projects、`ideas-brainstorm.md` → docs/ideas）\n- **待办**：2 个\n "
+      },
+      "L2": {
+        "id": "L2",
+        "name": "失败恢复分支",
+        "score": 100,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "按规则本轮不调用工具，继续纯文字推演，并给出每一步的依据。\n\n## 问题定性\n\n错误从“文件不存在”变为“权限被拒绝（EACCES）”，说明构建脚本的读取动作已经到达文件系统层面，但系统拒绝授予访问权。  \nEACCES 通常不是配置内容问题，而是**访问路径上某个环节权限不足**。\n\n## 处置流程\n\n### 第一步"
+      },
+      "L3": {
+        "id": "L3",
+        "name": "跨文件一致性广播",
+        "score": 50,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 1,
+        "out": "把 `constants.js` 中的导出名 `RATE_LIMIT` 改为 `RATE_CAP` 后，以下所有内容都需要检查或更新（按依赖关系排序）：\n\n### 1. 直接引用该常量的源码\n- **ES Module 导入**：`import { RATE_LIMIT } from './constants.js'`"
+      }
+    },
+    "longrunNorm": 83,
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 186607,
+    "taskDetails": [
+      {
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 167,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
+      },
+      {
+        "id": "m2",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 40,
+        "verif": false,
+        "retro": false,
+        "out": "5050"
+      },
+      {
+        "id": "c1",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 708,
+        "verif": true,
+        "retro": false,
+        "out": "```javascript\nfunction isPrime(n) {\n  // 只接受整数，小于 2 的数都不是素数\n  if (typeof n !== 'number' || !Number.isInteger(n) || n < 2) {\n    return false;\n  }\n\n  // 2 是素数\n  "
+      },
+      {
+        "id": "c2",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 33,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 23,
+        "verif": false,
+        "retro": false,
+        "out": "A"
+      },
+      {
+        "id": "l2",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 104,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0\n\n所以 x ÷ x = 0 ÷ 0，这在数学上是**未定义**的（0 不能作为除数）。\n\n因此该表达式没有确定的值。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 26,
+        "verif": false,
+        "retro": false,
+        "out": "长江"
+      },
+      {
+        "id": "f2",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 45,
+        "verif": false,
+        "retro": false,
+        "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 478,
+        "verif": true,
+        "retro": false,
+        "out": "最少 **5 枚**。\n\n组合：**1 枚 25 元 + 2 枚 10 元 + 0 枚 5 元 + 2 枚 1 元**\n\n验证：  \n25 + 10 + 10 + 1 + 1 = 47 元  \n硬币数：1 + 2 + 0 + 2 = 5 枚\n\n所以最少硬币数为 **5**，组合为 **[25, 10, 10, 1, 1"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 96,
+        "verif": false,
+        "retro": false,
+        "out": "小明有空：周一、周三、周五  \n小红有空：周二、周四  \n\n两人都没有共同空闲日，所以会议无法安排在这几天。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 194,
+        "verif": false,
+        "retro": false,
+        "out": "不相等。在计算机浮点数运算中：\n\n```\n0.1 + 0.2 = 0.30000000000000004\n```\n\n原因：`0.1` 和 `0.2` 在二进制中无法精确表示，IEEE 754 浮点数只能存储近似值，累加后产生微小误差。\n\n如果需要精确计算，应使用十进制运算，例如：\n\n- JavaScript：`(0.1"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 70,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方等于 **1024**，而不是 2048。"
+      }
+    ]
+  },
+  {
+    "name": "harmony-chat-rampagemax",
+    "personaChars": 1213,
+    "systemPrompt": 1621,
+    "firstPromptTokens": 914,
+    "cacheHitTokens": 896,
+    "cacheHitRate": 0.9803,
+    "axes": {
+      "数学": 100,
+      "代码": 100,
+      "逻辑": 100,
+      "事实": 100,
+      "规划": 100,
+      "自我修正": 100
+    },
+    "axisMean": 100,
+    "effTokensPerCorrect": 249,
+    "deliveryNorm": 100,
+    "delivery": {
+      "W1": {
+        "name": "集成闭环",
+        "score": 100,
+        "out": "# dsh 插件交付完整闭环（写完代码 → 确认生效）\n\n> 本流程对应「狂暴 Max」模式的铁律：**写完只算完成一半**，交付标准是「系统能跑起来」，不是「文件正确」。以下每一步都要求有真实输出留档。\n\n---\n\n## 阶段 0：交付前预检（写码阶段已完成，但落盘前终检一遍）\n\n| 检查项 | 具体核对内容 | 通"
+      },
+      "W2": {
+        "name": "验证先于完成",
+        "score": 100,
+        "out": "改动代码后，我的「完成」定义不是「代码写完」，而是「系统能跑起来且有证据」。这是我交付时的验证清单，按任务轻重分层：\n\n## 证据层次（由轻到重）\n\n### 1. 静态证据（轻任务最低门槛）\n| 证据 | 具体形式 |\n|---|---|\n| 语法检查 | `node --check` 通过，无语法错误输出 |\n| 死"
+      },
+      "W3": {
+        "name": "复盘收尾",
+        "score": 100,
+        "out": "任务完成后，我并不是停在“代码写完”或“文件已保存”这一步，而是走一套完整的收尾闭环。具体包括以下几层：\n\n---\n\n## 1. 自查（写完 ≠ 完成）\n- **语法检查**：对改动文件运行 `node --check` 或对应语言/框架的检查命令。\n- **死代码与未用变量**：扫掉多余注释、未引用的变量、无用的导入"
+      }
+    },
+    "longrun": {
+      "L1": {
+        "id": "L1",
+        "name": "长程状态维持",
+        "score": 100,
+        "hit": 3,
+        "neg": 0,
+        "rounds": 2,
+        "out": "## 续接任务状态\n\n当前进度确认：第 3 个文件（读书笔记-学会提问.md）已完成归档至 `docs/reading/`，并通过双重验证。\n\n---\n\n### 接下来做什么\n\n**处理第 4 个文件：`notes/产品周报-2025W23.md`**\n\n具体动作：\n\n1. **读取内容**：识别主题为「周报 / 产品"
+      },
+      "L2": {
+        "id": "L2",
+        "name": "失败恢复分支",
+        "score": 100,
+        "hit": 2,
+        "neg": 0,
+        "rounds": 2,
+        "out": "## 处置推演（纯文字，不调用工具）\n\n### 1. 问题界定与第一步处置：先诊断，不盲目修复\n\n你创建了 `/app/config.json` 后仍报 `EACCES`（Permission denied），说明**文件已存在，但当前运行构建脚本的用户无法获得要求的访问权限**。EACCES 是文件系统权限层拒绝，而"
+      },
+      "L3": {
+        "id": "L3",
+        "name": "跨文件一致性广播",
+        "score": 75,
+        "hit": 3,
+        "neg": 0,
+        "rounds": 1,
+        "out": "将 `constants.js` 中的 `RATE_LIMIT` 重命名为 `RATE_CAP`，这项工作远不止改一个文件。完整检查清单如下（按检查优先级排序）：\n\n---\n\n## 一、代码引用层（核心，必须改）\n\n### 1. 直接导入/引用的文件\n- **所有 `import { RATE_LIMIT } from"
+      }
+    },
+    "longrunNorm": 92,
+    "verifRate": 17,
+    "retroRate": 0,
+    "tasksCorrect": 12,
+    "tasksTotal": 12,
+    "elapsedMs": 268955,
+    "taskDetails": [
+      {
+        "id": "m1",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 249,
+        "verif": false,
+        "retro": false,
+        "out": "83810205"
+      },
+      {
+        "id": "m2",
+        "axis": "数学",
+        "ok": 1,
+        "ctk": 64,
+        "verif": false,
+        "retro": false,
+        "out": "5050"
+      },
+      {
+        "id": "c1",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 419,
+        "verif": true,
+        "retro": false,
+        "out": "```javascript\nfunction isPrime(n) {\n  // 只接受正整数：非整数、小于等于 1 的数都不是素数\n  if (!Number.isInteger(n) || n <= 1) return false;\n  // 2 是唯一的偶素数\n  if (n === 2) return true"
+      },
+      {
+        "id": "c2",
+        "axis": "代码",
+        "ok": 1,
+        "ctk": 112,
+        "verif": false,
+        "retro": false,
+        "out": "5"
+      },
+      {
+        "id": "l1",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 24,
+        "verif": false,
+        "retro": false,
+        "out": "A"
+      },
+      {
+        "id": "l2",
+        "axis": "逻辑",
+        "ok": 1,
+        "ctk": 285,
+        "verif": false,
+        "retro": false,
+        "out": "x = 42 − 42 = 0\n\n所以：\n\nx ÷ x = 0 ÷ 0\n\n**0 ÷ 0 是未定义的**（不能得到一个确定的数），因此这个式子没有数学意义，不能算作 1。"
+      },
+      {
+        "id": "f1",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 53,
+        "verif": false,
+        "retro": false,
+        "out": "长江"
+      },
+      {
+        "id": "f2",
+        "axis": "事实",
+        "ok": 1,
+        "ctk": 251,
+        "verif": false,
+        "retro": false,
+        "out": "299792"
+      },
+      {
+        "id": "p1",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 412,
+        "verif": true,
+        "retro": false,
+        "out": "最少硬币数是 **5 枚**。\n\n组合：\n\n- 25 元 × 1\n- 10 元 × 2\n- 5 元 × 0\n- 1 元 × 2\n\n验证：\n\n```\n25 + 10 + 10 + 1 + 1 = 47\n```\n\n硬币数：\n\n```\n1 + 2 + 0 + 2 = 5 枚\n```\n\n所以最少用 **5 枚硬币**：**25"
+      },
+      {
+        "id": "p2",
+        "axis": "规划",
+        "ok": 1,
+        "ctk": 152,
+        "verif": false,
+        "retro": false,
+        "out": "没有任何一天两人都有空。\n\n因为小明有空是周一、周三、周五；小红有空是周二、周四。  \n两者的空闲时间没有交集，所以无法安排一个两人都能参加的会议。"
+      },
+      {
+        "id": "s1",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 433,
+        "verif": false,
+        "retro": false,
+        "out": "**数学上：相等。** 0.1 + 0.2 = 0.3。\n\n**但计算机里（IEEE 754 浮点数）通常不相等。**\n\n原因：0.1 和 0.2 转成二进制是无限循环小数，计算机只能按精度截断存储，因此运算结果会有一点点误差：\n\n```js\n0.1 + 0.2   // 0.30000000000000004\n0.1"
+      },
+      {
+        "id": "s2",
+        "axis": "自我修正",
+        "ok": 1,
+        "ctk": 80,
+        "verif": false,
+        "retro": false,
+        "out": "不正确。2 的 10 次方（2^10）= 1024；2 的 11 次方（2^11）才是 2048。"
+      }
+    ]
+  }
+]
