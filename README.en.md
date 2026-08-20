@@ -227,6 +227,7 @@ Raw data `bench/result.json`, report `bench/result.md`; the benchmark script `be
 |---|---|
 | `scripts/dsh-web.sh` | Start/restart the dsh Web service (3080, idempotent liveness probe) |
 | `scripts/dsh-update.mjs` | dsh update checks: `check` / `patch` / `install` / `rollback`; re-applies patches automatically after an upgrade |
+| `scripts/dsh-manual-install.mjs` | Manual installer: recursively resolves the full dependency graph from registry metadata and installs tarballs directly (bypasses npm arborist resolution hang); `install()`/`rollback()` call it automatically, npm as fallback |
 | `scripts/dsh-update-web.sh` | Settings and update page (3098, embedded HTML) |
 | `scripts/dsh-hm-install.mjs` | One-click install of GitHub-source plugins (bypasses isogit interception) |
 
@@ -270,6 +271,16 @@ This project does not include dsh source code; it only contains independently wr
 ---
 
 ## Changelog
+
+### 2026-08-20 — Follow official 0.1.0-rc.8
+
+dsh was officially updated to `0.1.0-rc.8` (released 2026-08-19); this repository's ported version is synced. Upgrade highlights:
+
+- **`dsh-update.mjs getLatest()` dist-tags fix**: the official `dist-tags.latest` stayed at rc.7 after rc.8 shipped, so `npm view version` reported "already latest". It now scans the full `versions` list and picks the numerically highest (rc.N and stable compared by number); `check` verified `installed = latest = 0.1.0-rc.8`.
+- **New `scripts/dsh-manual-install.mjs`**: npm's arborist silently hangs during dependency resolution on HarmonyOS (no output, low CPU, times out — reproduced 3×). The manual installer recursively resolves the full dependency graph from registry metadata and installs tarballs directly, keeping baseline packages that already satisfy their spec and gating optional dependencies by `os`/`cpu`. Verified a 470-package closure with zero gaps. Wired into `dsh-update.mjs` `install()`/`rollback()` with npm as fallback.
+- **rc.8 dependency tree**: 54 `@deepseek-ai/dsh-*` packages bumped `^0.1.0-rc.7` → `^0.1.0-rc.8` (including official changes: pass reasoning_content back on every reasoned turn, SQLite persistence layout optimization, Agent Teams directory renames, build artifact slot binding, pwsh persistent pty) plus new `@deepseek-ai/dsh-tool-pwsh-persistent`.
+- **All three HarmonyOS patches anchored cleanly on rc.8**: credentials (skip chmod-600 owner check), session (link→rename + `rename` import; the SQLite change did not touch the JSONL persistence file), permission (`ctx.shell.sandboxMode` → `ctx.fs.sandboxMode`).
+- **Verified loop**: manual install of rc.8 → re-apply patches → restart dsh → 3080 HTTP 200 → plugins load (deveco-bridge 5 tools / evoresearch / dsh-cost-meter) → all seven HarmonyOS presets report `broken: none` in `agentPreset.list`.
 
 ### 2026-08-18 — Follow official 0.1.0-rc.7
 

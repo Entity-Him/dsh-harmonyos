@@ -290,6 +290,7 @@ node hvigorw.js assembleHap
 |---|---|
 | `scripts/dsh-web.sh` | dsh Web 服务启动/重启（3080，幂等探活） |
 | `scripts/dsh-update.mjs` | dsh 检查更新：`check` / `patch` / `install` / `rollback`，升级后自动重打补丁 |
+| `scripts/dsh-manual-install.mjs` | 手动直装器：registry 元数据递归解析 + tarball 直装（绕过 npm arborist 解析卡死），`install()`/`rollback()` 自动调用、npm 兜底 |
 | `scripts/dsh-update-web.sh` | 设置与更新页（3098，内嵌 HTML） |
 | `scripts/dsh-hm-install.mjs` | GitHub 源插件一键安装（绕过 isogit 拦截） |
 | `scripts/dsh-hm-update.sh` | **一键更新**（官方 dsh 升级 + 仓库预设/插件/补丁同步，`check` / 默认 update） |
@@ -334,6 +335,16 @@ MIT License，见 [LICENSE](LICENSE)。
 ---
 
 ## 更新记录
+
+### 2026-08-20 — 跟进官方 0.1.0-rc.8
+
+dsh 官方更新至 `0.1.0-rc.8`（2026-08-19 发布），本仓库移植版已同步。升级要点：
+
+- **`dsh-update.mjs getLatest()` 修复 dist-tags 探测**：官方 `dist-tags.latest` 停在 rc.7，但 `0.1.0-rc.8` 已发布，导致 `npm view version` 误判「已是最新」。现改为遍历 `versions` 取数值最高版本（`rc.N` 与稳定版均按数字比较），`check` 实测 `installed = latest = 0.1.0-rc.8`。
+- **新增 `scripts/dsh-manual-install.mjs` 手动直装器**：npm arborist 在鸿蒙本机的依赖解析阶段会静默卡死（无输出、CPU 低、拖到超时，3 次实测均复现）。直装器改从 registry 元数据**递归解析完整依赖图 + tarball 直装**，对已装且满足 spec 的包保留基线、optional 依赖按 `os/cpu` 平台门控，实测 470 包闭包零缺口。已接入 `dsh-update.mjs` 的 `install()` / `rollback()`（npm 作兜底）。
+- **rc.8 依赖树变化**：54 个 `@deepseek-ai/dsh-*` 从 `^0.1.0-rc.7` 升到 `^0.1.0-rc.8`（含官方「多轮推理回传 reasoning_content」「SQLite 持久化布局优化」「Agent Teams 目录更名」「构建产物 slot 化」「pwsh 常驻 pty」等改动），并新增 `@deepseek-ai/dsh-tool-pwsh-persistent`。
+- **三个鸿蒙补丁在 rc.8 锚点全部命中**：credentials（chmod 600 跳过）、session（link→rename + `rename` import，官方 SQLite 改动未波及 JSONL 持久化文件）、permission（`ctx.shell.sandboxMode`→`ctx.fs.sandboxMode`）。
+- **实测闭环**：npm 直装 rc.8 → 重打补丁 → 重启 dsh → 3080 HTTP 200 → 插件正常加载（deveco-bridge 5 工具 / evoresearch / dsh-cost-meter）→ 七套鸿蒙预设 `agentPreset.list` 全部 `broken: 无`。
 
 ### 2026-08-20 — 鸿蒙桌面客户端（ArkTS UI）+ 鸿蒙底层适配
 

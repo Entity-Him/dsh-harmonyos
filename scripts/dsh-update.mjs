@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // dsh 核心「检查更新」：check / patch / install / rollback。鸿蒙本机专用，零依赖。
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, unlinkSync, appendFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, unlinkSync, appendFileSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
@@ -18,6 +18,7 @@ const CRED_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-credentials
 const SESS_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-session-persistence-jsonl', 'lib', 'index.js');
 const PERM_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-permission-presets', 'lib', 'index.js');
 const MARK = 'HarmonyOS patch';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function log(...parts) {
   const line = `[${new Date().toISOString()}] ${parts.join(' ')}`;
@@ -39,15 +40,39 @@ function sh(cmd, args, opts = {}) {
 // 且其原生二进制只在 win32 路径使用、node-pty 本机本就不可用、sharp 走预编译）。
 // 纯 JS 的 @deepseek-ai 包均无 install 脚本，忽略是安全的。
 function npm(...args) { return sh('npm', args, { cwd: DSH_DIR, extra: ['--ignore-scripts'] }); }
+// 鸿蒙适配：npm arborist 在本机依赖解析阶段会静默卡死（无输出、CPU 低、拖到超时）。
+// 手动直装器经 registry 元数据递归解析 + tarball 直装，实测 470 包闭包零缺口。npm 作兜底。
+function manualInstall(version) {
+  const script = join(__dirname, 'dsh-manual-install.mjs');
+  if (!existsSync(script)) { log('dsh-manual-install.mjs 不存在，回退 npm'); return false; }
+  const r = sh(process.execPath, [script, version], { cwd: DSH_DIR, timeout: 600000 });
+  if (r.ok) { log('手动直装完成 → ' + version); return true; }
+  log('手动直装失败，回退 npm: ' + tail(r.out));
+  return false;
+}
 
 function readInstalled() {
   try { return String(JSON.parse(readFileSync(PKG, 'utf8')).version || '').trim(); }
   catch { return ''; }
 }
+// 官方 dist-tags.latest 可能滞后于实际发布（如 rc.8 已发布而 latest 停在 rc.7），
+// 因此遍历 versions 取数值最高的版本（rc.N 与稳定版均按数字比较）。
 function getLatest() {
-  const r = npm('view', '@deepseek-ai/dsh', 'version');
+  const r = npm('view', '@deepseek-ai/dsh', 'versions', '--json');
   if (!r.ok) throw new Error('npm view 失败: ' + tail(r.out));
-  return (r.out.trim().split('\n').filter(Boolean).pop() || '').trim();
+  let list = [];
+  try { list = JSON.parse(r.out.trim()); } catch {}
+  if (!Array.isArray(list) || !list.length) throw new Error('npm 未返回可用版本列表: ' + tail(r.out));
+  const nums = (v) => {
+    const m = /^(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?/.exec(String(v).trim());
+    return m ? [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4] || 0)] : null;
+  };
+  const sorted = list.filter((v) => nums(v)).sort((a, b) => {
+    const A = nums(a), B = nums(b);
+    for (let i = 0; i < 4; i++) if (A[i] !== B[i]) return A[i] - B[i];
+    return 0;
+  });
+  return sorted[sorted.length - 1] || '';
 }
 export function check() {
   const installed = readInstalled();
@@ -165,9 +190,11 @@ export async function install() {
   log('升级: ' + (before || '?') + ' → ' + (latest || '?'));
   if (before === latest && before) log('已是最新，仍重装同版本以修复补丁/产物。');
   const target = latest || before;
-  const r = npm('install', '@deepseek-ai/dsh@' + target);
-  if (!r.ok) throw new Error('npm install 失败: ' + tail(r.out));
-  log('npm install 完成 → ' + target);
+  if (!manualInstall(target)) {
+    const r = npm('install', '@deepseek-ai/dsh@' + target);
+    if (!r.ok) throw new Error('npm install 失败: ' + tail(r.out));
+  }
+  log('安装完成 → ' + target);
   writeFileSync(PREV, before);
   const p = patchAll();
   log('补丁: credential=' + (p.credential ? '重打' : '已存在') + ', session=' + (p.session ? '重打' : '已存在') + ', permission=' + (p.permission ? '重打' : '已存在'));
@@ -187,8 +214,10 @@ async function rollback(version) {
   const target = version || readFileSafe(PREV).trim();
   if (!target) throw new Error('无回滚目标版本（无 ~/dsh-update.prev）');
   log('回滚到 ' + target);
-  const r = npm('install', '@deepseek-ai/dsh@' + target);
-  if (!r.ok) throw new Error('npm install 失败: ' + tail(r.out));
+  if (!manualInstall(target)) {
+    const r = npm('install', '@deepseek-ai/dsh@' + target);
+    if (!r.ok) throw new Error('npm install 失败: ' + tail(r.out));
+  }
   patchAll();
   stopDsh();
   restartDsh();
