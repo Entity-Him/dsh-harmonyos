@@ -17,7 +17,6 @@ export struct InputBar {
   build() {
     Row({ space: 10 }) {
       TextArea({ text: this.input, placeholder: this.placeholderText() })
-        .width('100%')
         .layoutWeight(1)
         .height(96)
         .fontSize(15)

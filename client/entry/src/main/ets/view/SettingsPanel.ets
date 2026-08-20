@@ -309,11 +309,15 @@ export struct SettingsPanel {
                   }
                 })
             } else {
-              Text('（未连接 dsh 服务，无法获取预设列表）')
+              Text('（预设列表不可用）')
                 .fontSize(12)
                 .fontColor(Theme.COLOR_SUBTEXT)
                 .width('100%')
             }
+            Text('内置六套 · 切换后新建对话立即生效（dsh 服务模式）')
+              .fontSize(11)
+              .fontColor(Theme.COLOR_SUBTEXT)
+              .width('100%')
           }
           .width('100%')
 
@@ -535,7 +539,7 @@ export struct SettingsPanel {
           }
           .width('100%')
 
-          Text('DeepSeek Harness 鸿蒙桌面客户端 v1.1.0')
+          Text('DeepSeek Harness 鸿蒙桌面客户端 v1.5.0')
             .fontSize(12)
             .fontColor(Theme.COLOR_SUBTEXT)
             .width('100%')

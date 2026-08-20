@@ -18,8 +18,29 @@ export class Constants {
   static readonly KEY_DIRECT_API_KEY: string = 'direct_api_key';
   /** 直连模式默认模型存储键 */
   static readonly KEY_DIRECT_MODEL: string = 'direct_model';
-  /** 直连模式可选模型 */
-  static readonly DIRECT_MODELS: string[] = ['deepseek-chat', 'deepseek-reasoner'];
+  /**
+   * 直连模式可选模型（DeepSeek v4 系优先：主人鸿蒙环境主循环 v4-flash、
+   * 复杂任务 v4-pro；兼容官方 deepseek-chat / deepseek-reasoner）。
+   */
+  static readonly DIRECT_MODELS: string[] = [
+    'deepseek-v4-flash',
+    'deepseek-v4-pro',
+    'deepseek-chat',
+    'deepseek-reasoner'
+  ];
+  /**
+   * 内置六套鸿蒙对话模式预设（来自 dsh-harmonyos 仓库，客户端内置，
+   * 不依赖 dsh 服务端 agentPreset.list，任何连接模式下都可切换；
+   * dsh 服务模式下新建会话时作为 agentPreset 传入）。
+   */
+  static readonly BUILTIN_PRESETS: string[] = [
+    'harmony-chat',
+    'harmony-chat-pro',
+    'harmony-chat-promax',
+    'harmony-chat-ops',
+    'harmony-chat-rampagemax',
+    'harmony-kb'
+  ];
   /** 历史消息加载上限（条，会话级） */
   static readonly HISTORY_MAX_MESSAGES: number = 200;
   /** 会话列表标题最长字符数（自动截断） */

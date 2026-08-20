@@ -69,17 +69,24 @@ export struct ChatView {
         .scrollBar(BarState.Off)
       }
 
-      // 输入栏
-      InputBar({
-        streaming: this.streaming,
-        connected: this.connected,
-        onSend: (text: string) => {
-          this.onSend(text);
-        },
-        onStop: () => {
-          this.onStop();
-        }
-      })
+      // 输入栏（限宽居中：宽屏下输入框不会撑满整行，发送按钮固定在右侧可见）
+      Row() {
+        InputBar({
+          streaming: this.streaming,
+          connected: this.connected,
+          onSend: (text: string) => {
+            this.onSend(text);
+          },
+          onStop: () => {
+            this.onStop();
+          }
+        })
+        .width('100%')
+        .constraintSize({ maxWidth: 920 })
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor(Theme.COLOR_BG)
     }
     .width('100%')
     .height('100%')

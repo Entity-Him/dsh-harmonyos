@@ -1,0 +1,3 @@
+name: 鸿蒙开发大师
+description: 鸿蒙 DevEco 全链路开发 Agent —— 通过 dsh-deveco-bridge 的 dev_* 工具直接驱动 hvigor/ohpm/hdc，打通"写 ArkTS → 编译 → 装真机 → 启动"完整闭环，含签名打包指引；dev_code 把深子任务委托给本机 DevEco Code 代理。麒麟 X90 软硬件协同功耗纪律：串行委托、4 核不拉满。纯 JS 无原生依赖，缓存友好。
+order: 7

@@ -18,7 +18,6 @@ import { Sidebar } from '../view/Sidebar';
 import { ChatView } from '../view/ChatView';
 import { SettingsPanel } from '../view/SettingsPanel';
 import { preferences } from '@kit.ArkData';
-import { promptAction } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
 
 @Entry
@@ -40,7 +39,7 @@ struct Index {
   /** 连接模式：'direct' 内置直连（打开即用）/ 'dsh' dsh 服务 */
   @State mode: string = 'direct';
   @State directApiKey: string = '';
-  @State directModel: string = 'deepseek-chat';
+  @State directModel: string = 'deepseek-v4-flash';
   @State directModels: string[] = Constants.DIRECT_MODELS;
   private client: DshApiClient | null = null;
   private deepseek: DeepSeekClient = new DeepSeekClient();
@@ -54,6 +53,7 @@ struct Index {
     if (this.client !== null) {
       this.client.closeMux();
     }
+    this.deepseek.stop();
   }
 
   // —— 设置持久化 ——
@@ -74,7 +74,7 @@ struct Index {
       this.mode = mode;
       const dk: string = store.getSync(Constants.KEY_DIRECT_API_KEY, '') as string;
       this.directApiKey = dk;
-      const dm: string = store.getSync(Constants.KEY_DIRECT_MODEL, 'deepseek-chat') as string;
+      const dm: string = store.getSync(Constants.KEY_DIRECT_MODEL, 'deepseek-v4-flash') as string;
       this.directModel = dm;
     } catch (e) {
       this.serverUrl = Constants.DEFAULT_SERVER;
@@ -92,6 +92,8 @@ struct Index {
       this.statusText = '直连模式（内置，打开即用）';
       this.connecting = false;
     }
+    // 预设列表始终可用：服务端拉不到（未连接）时用内置六套
+    this.loadPresets();
   }
 
   private saveServerUrl(): void {
@@ -153,10 +155,11 @@ struct Index {
     }
   }
 
-  /** 拉取部署提供的对话模式预设（agentPreset.list），供设置面板选择 */
+  /** 加载对话模式预设：优先 dsh 服务端列表（agentPreset.list），失败/未连接时用内置六套 */
   private loadPresets(): void {
     const client = this.client;
     if (client === null) {
+      this.applyBuiltinPresets();
       return;
     }
     client.agentPresetList().then((items: Array<Record<string, Object>>) => {
@@ -168,13 +171,25 @@ struct Index {
         }
         ids.push(String(items[i]['id']));
       }
+      if (ids.length === 0) {
+        this.applyBuiltinPresets();
+        return;
+      }
       this.presetIds = ids;
       if (this.currentPreset.length > 0 && ids.indexOf(this.currentPreset) === -1) {
         this.currentPreset = '';
       }
     }).catch((e: BusinessError) => {
-      this.statusText = '预设加载失败：' + String(e);
+      this.applyBuiltinPresets();
     });
+  }
+
+  /** 使用内置六套鸿蒙预设（不依赖 dsh 服务）；默认对话模式设为 promax */
+  private applyBuiltinPresets(): void {
+    this.presetIds = Constants.BUILTIN_PRESETS.slice();
+    if (this.currentPreset.length === 0) {
+      this.currentPreset = 'harmony-chat-promax';
+    }
   }
 
   // —— 连接 ——
@@ -372,7 +387,10 @@ struct Index {
   private sendDirect(text: string): void {
     if (this.directApiKey.length === 0) {
       // 未配置 Key：Toast 提示并直接打开设置
-      promptAction.showToast({ message: '请先在「设置」→「直连配置」填写 API Key' });
+      try {
+        this.getUIContext().getPromptAction().showToast({ message: '请先在「设置」→「直连配置」填写 API Key' });
+      } catch (e) {
+      }
       this.showSettings = true;
       return;
     }
@@ -432,6 +450,7 @@ struct Index {
         for (let i = msgs.length - 1; i >= 0; i--) {
           if (msgs[i].role === 'assistant' && msgs[i].status === 'streaming') {
             msgs[i].status = 'error';
+            msgs[i].text = '⚠️ 回复失败：' + err;
             break;
           }
         }
@@ -733,6 +752,12 @@ struct Index {
           onModeChange: (m: string) => {
             this.mode = m;
             this.saveMode(m);
+            if (m === 'dsh') {
+              // 切到 dsh 模式：清空直连本地消息，连接后自动加载服务端会话
+              this.deepseek.stop();
+              this.messages = [];
+              this.currentTitle = '';
+            }
             this.applyMode();
           },
           onSaveDirect: (key: string, model: string) => {
