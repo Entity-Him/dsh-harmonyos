@@ -275,6 +275,15 @@ This project does not include dsh source code; it only contains independently wr
 
 ## Changelog
 
+### 2026-08-20 — Added the HarmonyOS Dev Master preset (harmony-deveco) + dev_code delegation to DevEco Code
+
+**The 7th conversation mode `harmony-deveco`** (order 7, preset count six→seven), turning dsh into a HarmonyOS DevEco full-stack development agent:
+
+- **dev_* toolchain**: drives hvigor/ohpm/hdc directly through dsh-deveco-bridge (pure JS via node:child_process, no native deps), closing the "write ArkTS → build → deploy to device → launch" loop, including release signing/packaging guidance
+- **`dev_code` delegation to the local DevEco Code agent**: deveco-bridge gained a 6th tool `dev_code` — hands a self-contained deep sub-task over HTTP to the local DevEco Code (OpenCode web, 127.0.0.1:4096), which runs its own agent loop; one at a time (`isConcurrencySafe:false`), model defaults to `deepseek-v4-pro`; `task` must be self-contained (the sub-agent has no memory of this session); returns cost/tokens metadata for post-mortems
+- **Kirin X90 software-hardware-coordinated power discipline**: this device is 4-core AArch64 + 32GB; parallel multi-agent is the most power-hungry behavior — at most one delegating agent (subagent / dev_code) running at any time, tools step forward serially on their dependencies, concentrating "depth" on the few steps that truly need it (dev_code / pro sub-agents) — fast without burning the cores
+- **Verified loop**: after restarting dsh, `deveco-bridge` registers 6 tools (including dev_code); end-to-end dev_code delegation measured 4.2s / 13,528 tokens / ¥0.0002 returning a correct answer; repo preset matches `~/.dsh/.agent-presets/harmony-deveco/`
+
 ### 2026-08-20 — Follow official 0.1.0-rc.8
 
 dsh was officially updated to `0.1.0-rc.8` (released 2026-08-19); this repository's ported version is synced. Upgrade highlights:
