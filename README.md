@@ -55,7 +55,7 @@
 - **不动你的数据**：预设只改 dsh 的「对话模式」配置；插件只做目录列举与文件读取；补丁只开关 dsh 自己的插件行。不会删除、覆盖、加密或外传你的文件。
 - **网络行为最小**：只在启动 dsh 时加载配置、在你主动发起对话/检查更新时访问 DeepSeek 与 GitHub 官方接口。无遥测、无埋点、无数据上报。
 - **完全可审阅**：全仓库仅 20 余个文本文件，任何一行都可打开检查。
-- **可逆卸载**：删除 `~/.dsh/.agent-presets/` 下用到的预设目录（如 `harmony-chat-ops/`、`harmony-kb/`）、`~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list/` 及 profile 层对应软链，重启 dsh 即完全还原。
+- **可逆卸载**：删除 `~/.dsh/.agent-presets/` 下用到的预设目录（如 `harmony-chat-ops/`、`harmony-kb/`、`harmony-deveco/`）、`~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list/` 与 `@deepseek-ai/dsh-deveco-bridge/` 及 profile 层对应软链，重启 dsh 即完全还原。
 
 ---
 
@@ -151,6 +151,29 @@ ln -s ~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list ~/.dsh/profiles/node_mo
 5. **Obsidian 双链笔记**：按指令（如「总结这段并推送到 Obsidian」）把总结写成 md 落到 Obsidian vault（主目录 `obsidian/` 下含 `.obsidian` 的目录，本机如 `~/obsidian/Monash University/`），用 `[[文件名]]` 双链只挂 `kb-index.md` 里已有的笔记——Obsidian 侧载版自动显示，反链与图谱自动生成。
 
 > ⚠ **注意**：本模式频繁委派 Pro 子代理 + 多工具调用，CPU 负载较高，运行中电脑风扇会明显变响，建议空闲时段使用。
+
+### 2.7 安装鸿蒙开发大师依赖（`harmony-deveco` 需要）
+
+`harmony-deveco` 的 dev_* 工具由 dsh 之外的**自定义插件** `@deepseek-ai/dsh-deveco-bridge`（hvigor/ohpm/hdc 驱动 + dev_code 委托，纯 JS，node:child_process，无原生依赖）提供。它不在 dsh 基础安装里，需手动放两份（源码 + profile 层软链，缺一不可，同 2.5 的 dsh-tool-list）：
+
+```bash
+# ① 源码进 dsh 基础 node_modules（预设按裸包名解析到此层）
+cp -r plugins/@deepseek-ai/dsh-deveco-bridge ~/dsh-test/node_modules/@deepseek-ai/
+# ② 软链进 profile 层依赖树
+ln -s ~/dsh-test/node_modules/@deepseek-ai/dsh-deveco-bridge ~/.dsh/profiles/node_modules/@deepseek-ai/
+```
+
+预设已内建 `- id: deveco-bridge` 挂载行，dev_* 工具随 `harmony-deveco` 预设自动可用；若想在其他预设里也用上 dev_*，在 profile 补丁 `cordis.patch.yml` 加一段 insert：
+
+```yaml
+- insert:
+    - id: deveco-bridge
+      name: '@deepseek-ai/dsh-deveco-bridge'
+```
+
+> **工具路径**：插件默认到 `$HOME/deveco/deveco_tools/` 找 node/hvigor/sdk/ohpm（DevEco Studio 默认安装位置）；自定义安装用 `DEVECO_TOOLS_HOME` 整体指路，或 `DEVECO_NODE_HOME` / `DEVECO_HVIGOR_HOME` / `DEVECO_SDK_HOME` / `DEVECO_OHPM_BIN` / `DEVECO_HDC_BIN` 逐项覆盖。
+>
+> **`dev_code` 委托**：把自包含深子任务交给本机 DevEco Code 代理（OpenCode web，127.0.0.1:4096）跑独立 agent 循环。用前需先启动 DevEco Code 并配好 DeepSeek（`~/.deveco/deveco.jsonc`），地址可用 `DEVECO_WEB_BASE` 覆盖。每次委托约 13K 输入 token、串行执行，只对深子任务用（功耗纪律见预设人设）。
 
 ### 3. 启动 dsh（带鸿蒙补丁）
 

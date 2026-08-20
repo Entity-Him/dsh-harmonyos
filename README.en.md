@@ -54,7 +54,7 @@ Everything in this repository is plain-text / pure-JS configuration and scripts.
 - **Your data is untouched**: presets only modify dsh's "conversation mode" config; plugins only enumerate directories and read files; patches only enable/disable dsh's own plugin lines. Your files are never deleted, overwritten, encrypted, or transmitted.
 - **Minimal network behavior**: only loads config when dsh starts and only accesses the official DeepSeek and GitHub APIs when you actively start a conversation or check for updates. No telemetry, no tracking, no data reporting.
 - **Fully auditable**: the entire repository contains just over 20 text files; every single line can be opened and inspected.
-- **Reversible uninstall**: delete `~/.dsh/.agent-presets/harmony-chat-ops/`, `~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list/`, and the corresponding profile-layer symlinks, then restart dsh to fully restore.
+- **Reversible uninstall**: delete `~/.dsh/.agent-presets/harmony-chat-ops/`, `~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list/` and `@deepseek-ai/dsh-deveco-bridge/`, and the corresponding profile-layer symlinks, then restart dsh to fully restore.
 
 ---
 
@@ -138,6 +138,29 @@ ln -s ~/dsh-test/node_modules/@deepseek-ai/dsh-tool-list ~/.dsh/profiles/node_mo
 ```
 
 > The scheduled-task tools `schedule_create/list/delete` ship with dsh's base installation (`@deepseek-ai/dsh-schedule` is a direct dsh dependency), and `harmony.patch.yml` already mounts them via `insert`; no additional installation needed.
+
+### 2.6 Install the harmony-deveco dependency (`dsh-deveco-bridge`)
+
+The `harmony-deveco` dev_* tools are provided by another **custom plugin** outside dsh, `@deepseek-ai/dsh-deveco-bridge` (drives hvigor/ohpm/hdc + `dev_code` delegation; pure JS via node:child_process, no native deps). It is not part of dsh's base installation and must be placed in two locations manually (source + profile-layer symlink, both required — same as `dsh-tool-list` in 2.5):
+
+```bash
+# ① Put the source into dsh's base node_modules (presets resolve by bare package name to this layer)
+cp -r plugins/@deepseek-ai/dsh-deveco-bridge ~/dsh-test/node_modules/@deepseek-ai/
+# ② Symlink into the profile-layer dependency tree
+ln -s ~/dsh-test/node_modules/@deepseek-ai/dsh-deveco-bridge ~/.dsh/profiles/node_modules/@deepseek-ai/
+```
+
+The preset ships with the `- id: deveco-bridge` mount row, so dev_* tools are available automatically in the `harmony-deveco` preset. To expose dev_* in other presets too, add an `insert` block to your profile patch `cordis.patch.yml`:
+
+```yaml
+- insert:
+    - id: deveco-bridge
+      name: '@deepseek-ai/dsh-deveco-bridge'
+```
+
+> **Tool paths**: the plugin looks in `$HOME/deveco/deveco_tools/` for node/hvigor/sdk/ohpm (DevEco Studio's default install location); point `DEVECO_TOOLS_HOME` at a custom root, or override individually with `DEVECO_NODE_HOME` / `DEVECO_HVIGOR_HOME` / `DEVECO_SDK_HOME` / `DEVECO_OHPM_BIN` / `DEVECO_HDC_BIN`.
+>
+> **`dev_code` delegation**: hands a self-contained deep sub-task to the local DevEco Code agent (OpenCode web, 127.0.0.1:4096) which runs its own agent loop. Start DevEco Code and configure DeepSeek first (`~/.deveco/deveco.jsonc`); override the address with `DEVECO_WEB_BASE`. Each delegation costs ~13K input tokens and runs serially — reserve it for deep sub-tasks (power discipline is baked into the preset persona).
 
 ### 3. Start dsh (with the HarmonyOS patches)
 

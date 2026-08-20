@@ -1,0 +1,19 @@
+{
+  "name": "@deepseek-ai/dsh-deveco-bridge",
+  "description": "HarmonyOS DevEco toolchain bridge for dsh: runs hvigor/ohpm/hdc via node:child_process (no native addons), exposing dev_environment/dev_build/dev_install_deps/dev_deploy/dev_list_devices/dev_code tools (dev_code delegates sub-tasks to the local DevEco Code agent over HTTP).",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/runner.js"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6"
+  }
+}

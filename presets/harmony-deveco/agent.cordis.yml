@@ -102,6 +102,10 @@
 - id: tool-skill
   name: '@deepseek-ai/dsh-tool-skill'
 
+# ── DevEco 工具链（dev_environment/build/install_deps/list_devices/deploy/code 由 dsh-deveco-bridge 提供）──
+- id: deveco-bridge
+  name: '@deepseek-ai/dsh-deveco-bridge'
+
 # ── goals ───────────────────────────────────────────────────────────────────
 - id: tool-goal
   name: '@deepseek-ai/dsh-tool-goal'
