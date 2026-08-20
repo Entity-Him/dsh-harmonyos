@@ -21,9 +21,6 @@ const UA = 'dsh-hm-update/0.1';
 
 const PRESET_DIR = join(HOME, '.dsh', '.agent-presets');
 const DSH_DIR = join(HOME, 'dsh-test');
-const PLUGIN = '@deepseek-ai/dsh-tool-list';
-const PLUGIN_DEST = join(DSH_DIR, 'node_modules', PLUGIN);
-const PROFILE_LINK = join(HOME, '.dsh', 'profiles', 'node_modules', PLUGIN);
 const VERSION_FILE = join(HOME, '.dsh', '.dsh-harmonyos.version');
 const BACKUP_DIR = join(HOME, '.dsh', '.dsh-harmonyos-backup');
 const LOCK = join(HOME, '.dsh-hm-update.lock');
@@ -125,16 +122,26 @@ function deployPresets(top) {
   return n;
 }
 
-function deployPlugin(top) {
-  const src = join(top, 'plugins', PLUGIN);
-  if (!existsSync(src)) return false;
-  rmSync(PLUGIN_DEST, { recursive: true, force: true });
-  mkdirSync(dirname(PLUGIN_DEST), { recursive: true });
-  cpSync(src, PLUGIN_DEST, { recursive: true });
-  rmSync(PROFILE_LINK, { recursive: true, force: true });
-  mkdirSync(dirname(PROFILE_LINK), { recursive: true });
-  symlinkSync(PLUGIN_DEST, PROFILE_LINK, 'dir');
-  return true;
+// 部署 tarball plugins/@deepseek-ai/ 下的全部插件：copy 到 dsh-test node_modules + profile 软链。
+// 每加一个新仓库插件（如 dsh-deveco-bridge）无需改脚本，遍历目录即可。
+function deployPlugins(top) {
+  const srcRoot = join(top, 'plugins', '@deepseek-ai');
+  if (!existsSync(srcRoot)) return 0;
+  let n = 0;
+  for (const pkg of readdirSync(srcRoot)) {
+    const src = join(srcRoot, pkg);
+    if (!statSync(src).isDirectory()) continue;
+    const dest = join(DSH_DIR, 'node_modules', '@deepseek-ai', pkg);
+    const link = join(HOME, '.dsh', 'profiles', 'node_modules', '@deepseek-ai', pkg);
+    rmSync(dest, { recursive: true, force: true });
+    mkdirSync(dirname(dest), { recursive: true });
+    cpSync(src, dest, { recursive: true });
+    rmSync(link, { recursive: true, force: true });
+    mkdirSync(dirname(link), { recursive: true });
+    symlinkSync(dest, link, 'dir');
+    n++;
+  }
+  return n;
 }
 
 // ---- 重启 ----
@@ -205,8 +212,9 @@ async function update() {
       log(`  同步本机仓库副本 ${ns} 项（presets/plugins/scripts/patch）`);
       const np = deployPresets(top);
       log(`  部署预设 ${np} 套 → ~/.dsh/.agent-presets/`);
-      if (deployPlugin(top)) log('  部署插件 dsh-tool-list（基础 node_modules + profile 软链）');
-      else log('  ⚠ tarball 里没有 dsh-tool-list 插件，跳过');
+      const npl = deployPlugins(top);
+      if (npl > 0) log(`  部署插件 ${npl} 个（基础 node_modules + profile 软链）`);
+      else log('  ⚠ tarball 里没有插件目录，跳过');
       writeSafe(VERSION_FILE, remote);
       repoChanged = true;
     } finally {
