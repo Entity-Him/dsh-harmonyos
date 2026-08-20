@@ -338,6 +338,15 @@ MIT License，见 [LICENSE](LICENSE)。
 
 ## 更新记录
 
+### 2026-08-20 — 新增鸿蒙开发大师预设（harmony-deveco）+ dev_code 委托 DevEco Code
+
+**第七套对话模式 `harmony-deveco`**（order 7，预设计数六套→七套），把 dsh 变成鸿蒙 DevEco 全链路开发 Agent：
+
+- **dev_* 工具链**：通过 dsh-deveco-bridge 直接驱动 hvigor/ohpm/hdc（纯 JS，node:child_process，无原生依赖），打通「写 ArkTS → 编译 → 装真机 → 启动」完整闭环，含 release 签名打包指引
+- **`dev_code` 委托本机 DevEco Code 代理**：deveco-bridge 新增第 6 个工具 `dev_code`——把自包含深子任务经 HTTP 委托给本机 DevEco Code（OpenCode web，127.0.0.1:4096）跑独立 agent 循环，一次一个（串行，`isConcurrencySafe:false`），model 默认 `deepseek-v4-pro`；task 必须自包含（子代理无本会话记忆）；返回带 cost/tokens 元信息供复盘
+- **麒麟 X90 软硬件协同功耗纪律**：本机 4 核 AArch64 + 32GB，多 agent 并行是最吃功耗的行为——任何时刻最多一个委托型 agent（subagent / dev_code 二选一）在跑，工具按依赖串行推进，把「深度」集中到少数真正需要的步骤（dev_code / pro 子代理），快而不燥
+- **实测闭环**：dsh 重启后 `deveco-bridge` 注册 6 工具（含 dev_code）；dev_code 端到端委托实测 4.2s / 13528 tok / ¥0.0002 返回正确回答；仓库预设与本地 `~/.dsh/.agent-presets/harmony-deveco/` 一致
+
 ### 2026-08-20 — 跟进官方 0.1.0-rc.8
 
 dsh 官方更新至 `0.1.0-rc.8`（2026-08-19 发布），本仓库移植版已同步。升级要点：
