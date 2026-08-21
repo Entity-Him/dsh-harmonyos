@@ -186,6 +186,40 @@ cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.j
 
 > ⚠ `fs-sandbox` is the pure-JS provider of the fs service and **must not be disabled** (`tool-fs` depends on it). The headless patch only disables native-dependency plugin lines.
 
+### 3.6 Startup after reboot
+
+HarmonyOS has no `systemd` / `cron` / `XDG autostart`. After a shutdown-then-power-on, bring dsh back up with any of the following:
+
+**① Repository script (recommended; idempotent probe on 3080)**
+
+```bash
+sh scripts/dsh-web.sh        # skips if already running; otherwise starts and waits for the health check
+```
+
+Equivalent manual startup (no script):
+
+```bash
+cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.js \
+  --profile web --patch <this repo>/harmony.patch.yml
+```
+
+Then open `http://127.0.0.1:3080` in a browser.
+
+**② Headless (unattended / benchmarking)**
+
+```bash
+cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.js \
+  --profile headless --patch <this repo>/harmony-headless.patch.yml "task description"
+```
+
+**③ Boot auto-restore (optional)**: enable the "Terminal" app to auto-start at boot in HarmonyOS Settings, then add a probe hook to your shell config (e.g. `~/.zshrc`) that pulls services up every time a terminal opens:
+
+```bash
+for _svc in dsh-web; do sh "$HOME/bin/$_svc.sh" >/dev/null 2>&1 & done
+```
+
+`dsh-web.sh` is idempotent: it skips if already running and starts only when down, so no manual intervention is needed after a reboot. See the "Limitations" section below for the rationale.
+
 ### 4. Apply the node_modules patches (re-apply after upgrade/reinstall)
 
 ```bash

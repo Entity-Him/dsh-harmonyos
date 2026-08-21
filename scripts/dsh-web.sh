@@ -57,9 +57,9 @@ nohup "$NODE" --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.js \
   --profile web --patch "$PATCH" > "$LOG" 2>&1 &
 echo $! > "$PIDF"
 
-for i in 1 2 3 4 5 6 7 8 9 10; do
+for i in $(seq 1 30); do
   is_up && break
-  sleep 0.3
+  sleep 1
 done
 
 if is_up; then

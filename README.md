@@ -215,6 +215,40 @@ sh scripts/dsh-hm-update.sh check    # 只看状态不更新
 
 更新会先把旧预设备份到 `~/.dsh/.dsh-harmonyos-backup/`，**不动** `~/.dsh/settings.yaml`、凭据与你的个性化配置。
 
+### 3.7 关机重启后：恢复启动
+
+鸿蒙没有 `systemd` / `cron` / `XDG autostart` 开机自启服务。重启后按下面任一方式把 dsh 拉起来：
+
+**① 仓库脚本（推荐，幂等探活 3080）**
+
+```bash
+sh scripts/dsh-web.sh        # 已在跑则跳过；未跑则拉起并等健康检查
+```
+
+等价手启动（不依赖脚本）：
+
+```bash
+cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.js \
+  --profile web --patch <本仓库>/harmony.patch.yml
+```
+
+启动后浏览器访问 `http://127.0.0.1:3080`。
+
+**② headless（无人值守/基准测试）**
+
+```bash
+cd ~/dsh-test && node --expose-internals node_modules/@deepseek-ai/dsh/lib/bin.js \
+  --profile headless --patch <本仓库>/harmony-headless.patch.yml "任务描述"
+```
+
+**③ 开机自动恢复（可选）**：鸿蒙设置里把「终端」App 设为开机自启，再在 shell 启动配置（如 `~/.zshrc`）加一段探活钩子，每次打开终端自动拉起服务：
+
+```bash
+for _svc in dsh-web; do sh "$HOME/bin/$_svc.sh" >/dev/null 2>&1 & done
+```
+
+`dsh-web.sh` 幂等：已在跑就跳过，未跑才拉起，重启系统后无需手动干预。原理见下文「限制」一节。
+
 ### 4. 打 node_modules 补丁（升级/重装后需重打）
 
 ```bash
