@@ -1,14 +1,32 @@
 **简体中文** | [English](README.en.md)
 
-# dsh-harmonyos
+# dsh-harmonyos-pc
+
+<p align="center"><img src="repo-cover-teal.png" alt="dsh-harmonyos-pc 封面" width="100%"></p>
+
+<p align="center">
+  <img alt="HarmonyOS" src="https://img.shields.io/badge/HarmonyOS-Adapt-blue">
+  <img alt="DeepSeek Harness" src="https://img.shields.io/badge/DeepSeek_Harness-dsh-41b0ff">
+  <img alt="Cache Hit" src="https://img.shields.io/badge/Cache_Hit-98%25-orange">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-22%2B-black">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
+</p>
 
 让 [DeepSeek Harness](https://github.com/deepseek-ai/dsh)（dsh）在 **HarmonyOS / 鸿蒙** 设备上完整跑起来的全套适配方案。
+
+<p align="center">
+  <img src="repo-cover-aurora.png" alt="dsh-harmonyos-pc 特色总览：缓存命中 93.8%~98%、对话成本省 30 倍、纯 JS 零依赖、MIT" width="85%">
+</p>
+
+<p align="center">
+  <a href="repo-cover.png"><img src="repo-cover.png" alt="dsh-harmonyos-pc 封面（navy）" width="85%"></a>
+</p>
 
 > 鸿蒙端几乎没人做这件事——原生 ELF/.node 模块、node-pty、Koffi 在这类设备上都加载不了。本仓库把「安装、打补丁、缓存优化、插件安装、自更新」一整套工程沉淀成可复刻的开源方案。
 
 > **项目交流 QQ 群：930088487** —— 鸿蒙 dsh 适配、缓存优化、插件开发，欢迎加入交流。
 >
-> **新手教程**（在线版）：[点此打开 dsh-harmonyos 新手安装教程](https://docs.google.com/document/d/1bH07I_Zj5r-kKytnZ7aj6hMTa1c5ZQdE/edit)
+> **新手教程**（在线版）：[点此打开 dsh-harmonyos-pc 新手安装教程](https://docs.google.com/document/d/1bH07I_Zj5r-kKytnZ7aj6hMTa1c5ZQdE/edit)
 
 > **群介绍**：让 DeepSeek Harness（dsh）在 HarmonyOS / 鸿蒙 设备上完整跑起来的全套适配方案。鸿蒙端几乎没人做这件事——原生 ELF/.node 模块、node-pty、Koffi 在这类设备上都加载不了。本仓库把「安装、打补丁、缓存优化、插件安装、自更新」一整套工程沉淀成可复刻的开源方案：
 >
