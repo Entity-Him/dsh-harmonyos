@@ -41,6 +41,8 @@ A complete adaptation suite to get [DeepSeek Harness](https://github.com/deepsee
 | Filesystem enforces group permission bits, `chmod 600` is rejected | Credential file permission check always fails; cannot configure an API key | Patch `dsh-credentials-local`: `assertOwnerOnly` returns immediately |
 | Filesystem does not support hard links | Session persistence `link()` emits `EPERM` in release logs | Patch `dsh-session-persistence-jsonl`: `link` changed to `rename` |
 | No bash shell on HarmonyOS (native sandbox deps disabled) | No permission-preset dropdown in the dialog (read-only/workspace-write/danger-full-access) | Patch `dsh-permission-presets`: read `sandboxMode` from the fs sandbox (pure JS, always running) |
+| HarmonyOS storage rejects hard links / some mount points refuse read-only handles | Image reading (read_image / attachment) `link()` emits `EPERM`, directory `fsync` errors; images cannot persist → the model never sees them | Patch `dsh-attachment-local`: on `link` failure publish via `copy` (EEXIST race goes through sha256 integrity check); `syncDirectory` skips fsync on EPERM/EACCES/ENOTSUP mount points |
+| `dsh-visual-plugin` (third-party) panel defaults to an unconfigured vision endpoint | `vision model is not configured`, or a custom prompt returns empty text and gets hard-thrown | Patch `dsh-visual-plugin`: when the endpoint is empty, fall back to the main DeepSeek vision model (`llm-deepseek` + `DEEPSEEK_API_KEY`); retry once on empty content and degrade to a clear message |
 | `git ls-remote` is intercepted by the isogit shim | GitHub-source plugins cannot be installed | `scripts/dsh-hm-install.mjs` installer (fetch source → build → symlink) |
 
 ---
@@ -226,10 +228,12 @@ for _svc in dsh-web; do sh "$HOME/bin/$_svc.sh" >/dev/null 2>&1 & done
 node scripts/dsh-update.mjs patch
 ```
 
-Re-applies the three patches idempotently using content anchors (recognizes code changes in new versions). Without these three patches:
+Re-applies the five patches idempotently using content anchors (recognizes code changes in new versions). Without these five patches:
 - Can't configure a model API key (credential 660 permission check)
 - Sending messages errors with `EPERM link` (session persistence)
 - No permission-preset dropdown in the dialog (`dsh-permission-presets` must read `sandboxMode` from the fs sandbox)
+- Image reading can't persist (attachment-local: `link`→`copy` publish + mount-point fsync tolerance)
+- Vision reports "model not configured" / custom prompt returns empty text (dsh-visual-plugin falls back to the main vision model + empty-content retry/degrade)
 
 ---
 
@@ -331,6 +335,15 @@ This project does not include dsh source code; it only contains independently wr
 ---
 
 ## Changelog
+
+### 2026-08-22 — Fixed image reading and vision recognition (attachment-local + dsh-visual-plugin patches)
+
+On this device, dragging an image into DeepSeek Harness then having the model see and describe it used to break at two levels: the image couldn't persist, and the vision endpoint wasn't configured.
+
+- **`[Patch] dsh-attachment-local`**: HarmonyOS storage rejects `link()` with `EPERM` (Android/HarmonyOS don't support hard links), so publishing an image attachment into the same directory failed → read_image logged `Unable to persist image attachment`. The patch publishes via `copyFile(..., COPYFILE_EXCL)` when `link` fails (the `EEXIST` race still goes through the sha256 integrity check); `syncDirectory` skips that fsync on mount points that refuse a read-only handle (EPERM/EACCES/ENOTSUP). Fixes "read_image can read and persist".
+- **`[Patch] dsh-visual-plugin`**: (1) When the vision panel is unconfigured, `resolvedFacts()` falls back to the main DeepSeek vision model — reusing the `llm-deepseek` (provider) section's `baseURL` + `DEEPSEEK_API_KEY` with `deepseek-v4-flash-vision-exp`, eliminating "`vision model is not configured`"; (2) `describeImage` retries once when the model returns empty `content` (PROTOCOL) for a custom prompt, and if still empty degrades to a clear "model returned no content" message instead of hard-throwing. Fixes "a targeted prompt also returns a stable vision description".
+- **Companion**: `settings.yaml` adds a `vision-bridge` section after `llm-deepseek` (url=DeepSeek, model=deepseek-v4-flash-vision-exp, apiKeyEnv=DEEPSEEK_API_KEY) — double insurance with the code fallback and hot-reloadable.
+- **`scripts/dsh-update.mjs`**: adds `patchAttachment()` / `patchVision()` (idempotent, content-anchored, marked `HarmonyOS patch`), merged into `patchAll()`'s five-way verification — re-applied automatically after upgrade/reinstall, so image reading no longer fails and vision no longer reports unconfigured.
 
 ### 2026-08-20 — Added the HarmonyOS Dev Master preset (harmony-deveco) + dev_code delegation to DevEco Code
 
