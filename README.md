@@ -16,7 +16,7 @@
 > - **六边形 ProMax**（2026-08-18 升级）：缓存命中 / 省 token / 交付能力 / 测试验证 / 集成闭环 / 共存防御六条硬规则同场，把「写完代码」与「系统跑起来」之间的鸿沟写成机械清单，交付纪律对标并反超主流通用 Agent
 > - **狂暴 Max**（2026-08-18 新增）：不省 token 只讲质量与交付的极限模式——运行上下文 + 网页抓取全开，预检穷尽扫描，集成闭环与双重验证写死为铁律。慎用：高 token 消耗，可能清空账户额度
 > - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
-> - **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
+> - **node_modules 补丁脚本**：绕开鸿蒙文件系统的致命限制（`chmod 600` 被拒、不支持硬链接、存储拒绝硬链接/挂载点打不开只读句柄）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）+ 修好读图（attachment-local `link`→`copy`）与视觉识别（`dsh-visual-plugin` 回退到主视觉模型）
 > - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 > - **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
 > - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
@@ -27,7 +27,7 @@
 - **知识库专家 `harmony-kb`**（2026-08-19 新增）：把工作区当知识库——分层检索问答 / 深度研究（Pro 委派提炼）/ 文档整理 / 思维脑图（可导入万兴脑图）/ 笔记生成，并按指令把总结推送进鸿蒙侧载版 Obsidian（`[[双链]]` 只挂已有笔记）。注意：频繁委派 Pro + 多工具调用，CPU 负载高，风扇转得较狠
 - **鸿蒙开发大师 `harmony-deveco`**（2026-08-20 新增）：DevEco 全链路开发 Agent——通过 dev_* 工具驱动 hvigor/ohpm/hdc，打通「写 ArkTS → 编译 → 装真机 → 启动」完整闭环（含签名打包指引）；`dev_code` 把深子任务委托给本机 DevEco Code 代理（OpenCode web，127.0.0.1:4096）。麒麟 X90 软硬件协同功耗纪律：串行委托、4 核不拉满。
 - **启动补丁** `harmony.patch.yml`（web）+ `harmony-headless.patch.yml`（headless）：禁用依赖原生二进制的插件行，让 dsh 不再启动即崩
-- **node_modules 补丁脚本**：绕开鸿蒙文件系统的三个致命限制（`chmod 600` 被拒、不支持硬链接）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）
+- **node_modules 补丁脚本**：绕开鸿蒙文件系统的致命限制（`chmod 600` 被拒、不支持硬链接、存储拒绝硬链接/挂载点打不开只读句柄）+ 恢复对话框权限预设（`dsh-permission-presets` 改读 fs 沙箱，read-only/workspace-write/danger-full-access 下拉可用）+ 修好读图（attachment-local `link`→`copy`）与视觉识别（`dsh-visual-plugin` 回退到主视觉模型）
 - **省 token 优化实测**：11 道基准 A/B 验证 `reasoningEffort: high` 为帕累托最优（全对 + 步数最少 + 成本几乎不变），promax 委派组挂 Pro 模型路由兜底复杂子任务
 - **五套预设跑分（2026-08-18）**：经静态 persona 填充（前缀越过 128-token 块边界），静态前缀预设缓存命中率 52.9%–89.9% → **93.8%–98.0%**（promax 96.7%、ops 97.9%、rampagemax 98.0%），连开运行上下文的 harmony-chat 也拉到 93.8%——用数据印证「保缓存先保前缀稳定」（详见下方「性能实测」）
 - **工具链**：GitHub 插件一键安装器、dsh 自更新器 + 设置页
@@ -42,6 +42,8 @@
 | 文件系统强制组权限位，`chmod 600` 被拒 | 凭据文件权限检查永远炸，配不了 API key | 补丁 `dsh-credentials-local`：`assertOwnerOnly` 直接 `return` |
 | 文件系统不支持硬链接 | session 持久化 `link()` 发布日志报 `EPERM` | 补丁 `dsh-session-persistence-jsonl`：`link` 改 `rename` |
 | 鸿蒙无 bash shell（沙箱原生依赖被禁） | 对话框没有权限预设下拉（read-only/workspace-write/danger-full-access） | 补丁 `dsh-permission-presets`：`sandboxMode` 改读 fs 沙箱（纯 JS，一直在运行） |
+| 鸿蒙存储拒绝硬链接 / 部分挂载点打不开只读句柄 | 读图（read_image / 附件）`link()` 报 `EPERM`、目录 `fsync` 报错，图片存不下来 → 模型看不到图 | 补丁 `dsh-attachment-local`：`link` 失败改 `copy` 发布（EEXIST 竞态走完整性校验）；`syncDirectory` 对 EPERM/EACCES/ENOTSUP 挂载点跳过 fsync |
+| `dsh-visual-plugin`（第三方）面板默认未配置视觉端点 | `vision model is not configured`，或自定义 prompt 时视觉模型返回空文本被硬抛 | 补丁 `dsh-visual-plugin`：端点为空时回退到主 DeepSeek 视觉模型（`llm-deepseek` + `DEEPSEEK_API_KEY`）；空 content 重试一次并降级为明确提示 |
 | `git ls-remote` 被 isogit 垫片拦截 | GitHub 源插件装不了 | `scripts/dsh-hm-install.mjs` 安装器（fetch 源码 → 构建 → 软链） |
 
 ---
@@ -255,10 +257,12 @@ for _svc in dsh-web; do sh "$HOME/bin/$_svc.sh" >/dev/null 2>&1 & done
 node scripts/dsh-update.mjs patch
 ```
 
-按内容锚点幂等重打三个补丁（新版本改代码也能识别），不打这三处：
+按内容锚点幂等重打五个补丁（新版本改代码也能识别），不打这五处：
 - 配不了模型 API key（凭据 660 权限检查）
 - 发消息 `EPERM link`（session 持久化）
 - 对话框没有权限预设下拉（permission-presets 需改读 fs 沙箱的 `sandboxMode`）
+- 读图存不下来（attachment-local：`link` 失败改 `copy` 发布 + 挂载点 fsync 容错）
+- 视觉识别报「模型未配置」/自定义 prompt 返回空文本（dsh-visual-plugin 回退到主视觉模型 + 空 content 重试降级）
 
 ---
 
@@ -394,6 +398,15 @@ MIT License，见 [LICENSE](LICENSE)。
 ---
 
 ## 更新记录
+
+### 2026-08-22 — 修好读图与视觉识别（attachment-local + dsh-visual-plugin 补丁）
+
+本机实测「把图片拖进 DeepSeek Harness → 模型看见并描述」之前断在两级：图片存不下来、视觉端点未配置。
+
+- **`[补丁] dsh-attachment-local`**：鸿蒙存储对 `link()` 报 `EPERM`（Android/HarmonyOS 不支持硬链接），图片附件同一目录内发布失败 → 读图记录 `Unable to persist image attachment`。补丁让 `link` 失败改走 `copyFile(..., COPYFILE_EXCL)` 发布（`EEXIST` 竞态照旧走 sha256 完整性校验）；`syncDirectory` 对无法以只读句柄打开（EPERM/EACCES/ENOTSUP）的挂载点跳过该次 fsync。修好「read_image 能读到并持久化」。
+- **`[补丁] dsh-visual-plugin`**：① 视觉面板未配置时 `resolvedFacts()` 回退到主 DeepSeek 视觉模型——复用 `llm-deepseek`（provider）段的 `baseURL` + `DEEPSEEK_API_KEY` 与 `deepseek-v4-flash-vision-exp`，消除「`vision model is not configured`」；② `describeImage` 对自定义 prompt 时模型返回的空 `content`（PROTOCOL）重试一次，仍空则降级为「模型未返回内容」明确提示而非硬抛。修好「带针对性的 prompt 也能稳定返回视觉描述」。
+- **配套**：`settings.yaml` 在 `llm-deepseek` 后新增 `vision-bridge` 段（url=DeepSeek、model=deepseek-v4-flash-vision-exp、apiKeyEnv=DEEPSEEK_API_KEY），与代码层回退双保险且支持热重载。
+- **`scripts/dsh-update.mjs`**：新增 `patchAttachment()` / `patchVision()`（幂等、内容锚点匹配、带 `HarmonyOS patch` 标记），并入 `patchAll()` 五连校验——升级/重装后自动重打，读图不再丢、视觉不再报未配置。
 
 ### 2026-08-20 — 新增鸿蒙开发大师预设（harmony-deveco）+ dev_code 委托 DevEco Code
 
