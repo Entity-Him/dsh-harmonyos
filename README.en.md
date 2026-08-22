@@ -1,14 +1,32 @@
 [简体中文](README.md) | **English**
 
-# dsh-harmonyos
+# dsh-harmonyos-pc
+
+<p align="center"><img src="repo-cover-teal.png" alt="dsh-harmonyos-pc cover" width="100%"></p>
+
+<p align="center">
+  <img alt="HarmonyOS" src="https://img.shields.io/badge/HarmonyOS-Adapt-blue">
+  <img alt="DeepSeek Harness" src="https://img.shields.io/badge/DeepSeek_Harness-dsh-41b0ff">
+  <img alt="Cache Hit" src="https://img.shields.io/badge/Cache_Hit-98%25-orange">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-22%2B-black">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
+</p>
 
 A complete adaptation suite to get [DeepSeek Harness](https://github.com/deepseek-ai/dsh) (dsh) fully running on **HarmonyOS** devices.
+
+<p align="center">
+  <img src="repo-cover-aurora.png" alt="dsh-harmonyos-pc features: cache hit 93.8%~98%, 30x lower conversation cost, pure-JS zero-dependency, MIT" width="85%">
+</p>
+
+<p align="center">
+  <a href="repo-cover.png"><img src="repo-cover.png" alt="dsh-harmonyos-pc cover (navy)" width="85%"></a>
+</p>
 
 > Almost nobody has done this on HarmonyOS—native ELF/.node modules, node-pty, and Koffi simply cannot load on such devices. This repository distills the whole engineering effort—installation, patching, cache optimization, plugin installation, and self-update—into a reproducible open-source solution.
 
 > **QQ group for project discussion: 930088487** — HarmonyOS dsh adaptation, cache optimization, and plugin development. You're welcome to join.
 >
-> **Beginner tutorial** (online): [Open the dsh-harmonyos beginner installation tutorial](https://docs.google.com/document/d/1bH07I_Zj5r-kKytnZ7aj6hMTa1c5ZQdE/edit)
+> **Beginner tutorial** (online): [Open the dsh-harmonyos-pc beginner installation tutorial](https://docs.google.com/document/d/1bH07I_Zj5r-kKytnZ7aj6hMTa1c5ZQdE/edit)
 
 > **About this project**: A complete adaptation suite to get DeepSeek Harness (dsh) fully running on HarmonyOS devices. Almost nobody has done this on HarmonyOS—native ELF/.node modules, node-pty, and Koffi cannot load on such devices. This repository distills the whole engineering effort—installation, patching, cache optimization, plugin installation, and self-update—into a reproducible open-source solution:
 >
