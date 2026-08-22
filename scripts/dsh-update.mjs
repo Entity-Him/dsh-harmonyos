@@ -17,6 +17,10 @@ const LOCK = join(HOME, 'dsh-update.lock');
 const CRED_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-credentials-local', 'lib', 'index.js');
 const SESS_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-session-persistence-jsonl', 'lib', 'index.js');
 const PERM_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-permission-presets', 'lib', 'index.js');
+const ATTACH_FILE = join(DSH_DIR, 'node_modules', '@deepseek-ai', 'dsh-attachment-local', 'lib', 'index.js');
+// dsh-visual-plugin（第三方，github.com/jyh20030112/dsh-visual-plugin）以源码形式落在 profile 树，
+// 经 dsh-hm-install.mjs 铺进 plugins-src 并软链到 node_modules；运行时入口是 lib/index.js。
+const VISUAL_FILE = join(HOME, '.dsh', 'profiles', 'web', 'plugins-src', 'dsh-visual-plugin', 'lib', 'index.js');
 const MARK = 'HarmonyOS patch';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -144,12 +148,152 @@ function patchPermission() {
   writeFileSync(PERM_FILE, patched);
   return { changed: true };
 }
+// read_image 持久化：dsh-attachment-local 在本机(Android/HarmonyOS 存储)对 link() 报 EPERM，
+// 且部分挂载点/目录无法以只读句柄打开(EPERM/EACCES/ENOTSUP)。syncDirectory 增挂载点 guard，
+// link 失败时改按 copy 发布(EEXIST 竞态走完整性校验)。补 copyFile import。
+function patchAttachment() {
+  const txt = readFileSafe(ATTACH_FILE);
+  if (!txt) throw new Error('attachment-local 文件不存在，需手动处理: ' + ATTACH_FILE);
+  if (txt.includes(MARK)) return { changed: false };
+  let patched = txt;
+  // 1) import 补 copyFile（仅当干净 import 无 copyFile 时替换，幂等）。
+  const impRe = /(import\s*\{\s*chmod,\s*)link(\s*,)/;
+  const im = impRe.exec(patched);
+  if (im) patched = patched.slice(0, im.index) + im[1] + 'copyFile, link' + im[2] + patched.slice(im.index + im[0].length);
+  // 2) syncDirectory 挂载点 guard：把「直接 open 只读句柄」换成 try/catch 容错。
+  const syncAnchor = '\t/* v8 ignore start -- Windows cannot exercise directory fsync; POSIX behavior tests enforce this peer. */\n\tconst handle = await open(path, constants.O_RDONLY);';
+  if (patched.includes(syncAnchor)) {
+    patched = patched.replace(syncAnchor,
+      '\t/* v8 ignore start -- Windows cannot exercise directory fsync; POSIX behavior tests enforce this peer. */\n' +
+      '\t/* HarmonyOS patch: 部分挂载点/目录无法以只读句柄打开(EPERM/EACCES/ENOTSUP)，跳过该次 fsync，持久化归挂载所有者。 */\n' +
+      '\tlet handle;\n' +
+      '\ttry {\n' +
+      '\t\thandle = await open(path, constants.O_RDONLY);\n' +
+      '\t} catch (error) {\n' +
+      '\t\t/* v8 ignore next -- 无法 fsync 的边界走 return，不再上抛。 */\n' +
+      '\t\tif (error instanceof Error && "code" in error && ["EPERM", "EACCES", "ENOTSUP"].includes(error.code)) return;\n' +
+      '\t\t/* v8 ignore next -- 其余错误如实上抛。 */\n' +
+      '\t\tthrow error;\n' +
+      '\t}');
+  } else if (!patched.includes('let handle;\n\t\t\thandle = await open(path, constants.O_RDONLY)')) {
+    throw new Error('attachment 补丁锚点缺失(syncDirectory 只读句柄)，需手动处理: ' + ATTACH_FILE);
+  }
+  // 3) link EPERM → copyFile 回退。锚定为干净 link 段(仅捕获 EEXIST)。
+  const linkAnchor = '\t\t\tawait link(temporary, target);\n' +
+    '\t\t} catch (error) {\n' +
+    '\t\t\t/* v8 ignore next -- Private same-filesystem directories make EEXIST the only recoverable link race. */\n' +
+    '\t\t\tif (!(error instanceof Error && "code" in error && error.code === "EEXIST")) throw error;\n' +
+    '\t\t\tif (digest(new Uint8Array(await readFile(target))) !== sha256) throw new AttachmentError("Stored attachment failed integrity verification.", "ATTACHMENT_CORRUPT");\n' +
+    '\t\t}';
+  if (patched.includes(linkAnchor)) {
+    patched = patched.replace(linkAnchor,
+      '\t\t\tawait link(temporary, target);\n' +
+      '\t\t} catch (error) {\n' +
+      '\t\t\t/* HarmonyOS patch: 不支持硬链接的存储(如 Android/HarmonyOS)对 link() 报 EPERM，改按 copy 发布。 */\n' +
+      '\t\t\tif (!(error instanceof Error && "code" in error)) throw error;\n' +
+      '\t\t\tif (error.code === "EPERM") {\n' +
+      '\t\t\t\ttry {\n' +
+      '\t\t\t\t\tawait copyFile(temporary, target, constants.COPYFILE_EXCL);\n' +
+      '\t\t\t\t} catch (copyError) {\n' +
+      '\t\t\t\t\t/* v8 ignore next -- copy 发布竞态与 link 相同：EEXIST 即视为已发布。 */\n' +
+      '\t\t\t\t\tif (!(copyError instanceof Error && "code" in copyError && copyError.code === "EEXIST")) throw copyError;\n' +
+      '\t\t\t\t\tif (digest(new Uint8Array(await readFile(target))) !== sha256) throw new AttachmentError("Stored attachment failed integrity verification.", "ATTACHMENT_CORRUPT");\n' +
+      '\t\t\t\t}\n' +
+      '\t\t\t} else if (error.code === "EEXIST") {\n' +
+      '\t\t\t\tif (digest(new Uint8Array(await readFile(target))) !== sha256) throw new AttachmentError("Stored attachment failed integrity verification.", "ATTACHMENT_CORRUPT");\n' +
+      '\t\t\t} else {\n' +
+      '\t\t\t\tthrow error;\n' +
+      '\t\t\t}\n' +
+      '\t\t}');
+  } else if (!patched.includes('await copyFile(temporary, target, constants.COPYFILE_EXCL)')) {
+    throw new Error('attachment 补丁锚点缺失(link 段)，需手动处理: ' + ATTACH_FILE);
+  }
+  writeFileSync(ATTACH_FILE, patched);
+  return { changed: true };
+}
+function patchVision() {
+  const txt = readFileSafe(VISUAL_FILE);
+  if (!txt) throw new Error('dsh-visual-plugin 入口不存在，需手动处理: ' + VISUAL_FILE);
+  if (txt.includes(MARK)) return { changed: false };
+  let patched = txt;
+  // 1) 面板未配置时的回退常量（紧跟 DEFAULT_API_KEY_ENV 之后）。
+  const constAnchor = 'const DEFAULT_API_KEY_ENV = "VISION_API_KEY";';
+  if (patched.includes(constAnchor) && !patched.includes('const FALLBACK_VISION_MODEL')) {
+    patched = patched.replace(constAnchor, constAnchor + '\n' +
+      '/* HarmonyOS patch: 视觉面板未配置时回退到主 DeepSeek 视觉模型 + 同一密钥。 */\n' +
+      'const FALLBACK_VISION_MODEL = "deepseek-v4-flash-vision-exp";\n' +
+      'const DEEPSEEK_PROVIDER_NS = settingsNamespace("llm-deepseek");\n' +
+      'const DEEPSEEK_API_KEY_ENV = "DEEPSEEK_API_KEY";\n' +
+      'const DEEPSEEK_BASE_URL = "https://api.deepseek.com";');
+  }
+  // 2) resolvedFacts：面板配置为空时回退到 llm-deepseek 的 baseURL/凭据引用 + 主视觉模型。
+  const factsAnchor = '\t\tif (url.length === 0 || model.length === 0) return void 0;\n' +
+    '\t\tconst apiKeyEnv = value?.apiKeyEnv ?? "VISION_API_KEY";\n' +
+    '\t\tconst resolved = await credentials.resolve(credentialRef(apiKeyEnv));\n' +
+    '\t\tif (resolved === void 0) return void 0;\n' +
+    '\t\treturn {\n' +
+    '\t\t\turl,\n' +
+    '\t\t\tmodel,\n' +
+    '\t\t\tapiKey: resolved.value\n' +
+    '\t\t};';
+  if (patched.includes(factsAnchor)) {
+    patched = patched.replace(factsAnchor,
+      '\t\tif (url.length > 0 && model.length > 0) {\n' +
+      '\t\t\tconst apiKeyEnv = value?.apiKeyEnv ?? "VISION_API_KEY";\n' +
+      '\t\t\tconst resolved = await credentials.resolve(credentialRef(apiKeyEnv));\n' +
+      '\t\t\tif (resolved !== void 0) return {\n' +
+      '\t\t\t\turl,\n' +
+      '\t\t\t\tmodel,\n' +
+      '\t\t\t\tapiKey: resolved.value\n' +
+      '\t\t\t};\n' +
+      '\t\t}\n' +
+      '\t\t/* HarmonyOS patch: 面板未配置时回退到主 DeepSeek 视觉模型，复用 llm-deepseek 的 baseURL 与凭据引用。 */\n' +
+      '\t\tconst deepseek = settings.get(DEEPSEEK_PROVIDER_NS) ?? {};\n' +
+      '\t\tconst fallbackBaseUrl = typeof deepseek.baseURL === "string" && deepseek.baseURL.length > 0 ? deepseek.baseURL : DEEPSEEK_BASE_URL;\n' +
+      '\t\tconst fallbackApiKeyEnv = typeof deepseek.apiKeyEnv === "string" && deepseek.apiKeyEnv.length > 0 ? deepseek.apiKeyEnv : DEEPSEEK_API_KEY_ENV;\n' +
+      '\t\tconst fallbackKey = await credentials.resolve(credentialRef(fallbackApiKeyEnv));\n' +
+      '\t\tif (fallbackKey === void 0) return void 0;\n' +
+      '\t\treturn {\n' +
+      '\t\t\turl: fallbackBaseUrl,\n' +
+      '\t\t\tmodel: FALLBACK_VISION_MODEL,\n' +
+      '\t\t\tapiKey: fallbackKey.value\n' +
+      '\t\t};');
+  } else if (!patched.includes('const deepseek = settings.get(DEEPSEEK_PROVIDER_NS)')) {
+    throw new Error('vision 补丁锚点缺失(resolvedFacts)，需手动处理: ' + VISUAL_FILE);
+  }
+  // 3) describeImage：空 content(PROTOCOL)重试一次，仍空则降级为明确提示而非硬抛。
+  const descAnchor = '\tconst result = await callChatCompletions(completionsUrl(baseUrl), apiKey, model, messages, signal);\n' +
+    '\tconst describe = { description: result.content };\n' +
+    '\tif (result.usage !== void 0) describe.usage = result.usage;\n' +
+    '\treturn describe;';
+  if (patched.includes(descAnchor)) {
+    patched = patched.replace(descAnchor,
+      '\t/* HarmonyOS patch: 自定义 prompt 偶发返回空 content，重试一次；仍为空则降级为明确提示而非硬抛。 */\n' +
+      '\tconst url = completionsUrl(baseUrl);\n' +
+      '\tconst describeOf = (result) => result.usage !== void 0 ? { description: result.content, usage: result.usage } : { description: result.content };\n' +
+      '\tlet lastError;\n' +
+      '\tfor (let attempt = 0; attempt < 2; attempt += 1) {\n' +
+      '\t\ttry {\n' +
+      '\t\t\treturn describeOf(await callChatCompletions(url, apiKey, model, messages, signal));\n' +
+      '\t\t} catch (error) {\n' +
+      '\t\t\tif (!(error instanceof VisionError && error.code === "PROTOCOL")) throw error;\n' +
+      '\t\t\tlastError = error;\n' +
+      '\t\t}\n' +
+      '\t}\n' +
+      '\tif (lastError !== void 0) return { description: "（视觉模型未返回内容，请重试或换个问法）" };\n' +
+      '\treturn { description: "（视觉模型未返回内容）" };');
+  } else if (!patched.includes('const describeOf = (result) =>')) {
+    throw new Error('vision 补丁锚点缺失(describeImage)，需手动处理: ' + VISUAL_FILE);
+  }
+  writeFileSync(VISUAL_FILE, patched);
+  return { changed: true };
+}
 function patchAll() {
-  const r1 = patchCredentials(), r2 = patchSession(), r3 = patchPermission();
-  for (const f of [CRED_FILE, SESS_FILE, PERM_FILE]) {
+  const r1 = patchCredentials(), r2 = patchSession(), r3 = patchPermission(), r4 = patchAttachment(), r5 = patchVision();
+  for (const f of [CRED_FILE, SESS_FILE, PERM_FILE, ATTACH_FILE, VISUAL_FILE]) {
     if (!readFileSafe(f).includes(MARK)) throw new Error('补丁校验失败(标记缺失): ' + f);
   }
-  return { credential: r1.changed, session: r2.changed, permission: r3.changed };
+  return { credential: r1.changed, session: r2.changed, permission: r3.changed, attachment: r4.changed, vision: r5.changed };
 }
 
 // ---- 锁 / 重启 ----
@@ -197,7 +341,7 @@ export async function install() {
   log('安装完成 → ' + target);
   writeFileSync(PREV, before);
   const p = patchAll();
-  log('补丁: credential=' + (p.credential ? '重打' : '已存在') + ', session=' + (p.session ? '重打' : '已存在') + ', permission=' + (p.permission ? '重打' : '已存在'));
+  log('补丁: credential=' + (p.credential ? '重打' : '已存在') + ', session=' + (p.session ? '重打' : '已存在') + ', permission=' + (p.permission ? '重打' : '已存在') + ', attachment=' + (p.attachment ? '重打' : '已存在') + ', vision=' + (p.vision ? '重打' : '已存在'));
   const killed = stopDsh();
   if (killed > 0) log('已停旧 dsh 进程 ' + killed + ' 个');
   restartDsh();
